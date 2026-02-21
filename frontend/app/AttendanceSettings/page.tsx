@@ -215,7 +215,7 @@ export default function AttendanceSettings() {
   }
 
   return (
-    <div className="page">
+    <div className="attendance-settings">
       <header className="header">
         <div className="titleBlock">
           <div className="yearBig">{draft.year}</div>
@@ -373,7 +373,7 @@ export default function AttendanceSettings() {
 }
 
 const css = `
-  :root{
+  .attendance-settings{
     --bg: #f6f7fb;
     --card: #ffffff;
     --text: #0f172a;
@@ -384,16 +384,21 @@ const css = `
     --shadow: 0 10px 30px rgba(2, 6, 23, .06);
     --radius: 16px;
   }
-  *{ box-sizing: border-box; }
-  body{ margin:0; font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Noto Sans JP", Arial; color:var(--text); }
-  .page{ background:var(--bg); min-height:100vh; padding:24px; }
+  .attendance-settings *{ box-sizing: border-box; }
+  .attendance-settings{
+    background:var(--bg); min-height:100vh; padding:24px;
+    color:var(--text);
+  }
   .header{
-    display:flex; align-items:flex-end; justify-content:space-between;
+    display:flex; align-items:center; justify-content:space-between;
     gap:16px; margin-bottom:16px;
+    background: linear-gradient(180deg, #1f6feb 0%, #0b4fb3 100%);
+    color:#fff; padding:16px 18px; border-radius: 14px;
+    box-shadow: 0 10px 22px rgba(12, 55, 120, 0.2);
   }
   .titleBlock{ display:flex; align-items:baseline; gap:12px; }
   .yearBig{ font-size:44px; font-weight:800; letter-spacing: .5px; }
-  .title{ font-size:18px; font-weight:700; color:var(--muted); }
+  .title{ font-size:18px; font-weight:700; color:#e8f1ff; }
   .headerActions{ display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap; }
   .grid{ display:grid; grid-template-columns: 1.05fr 1fr; gap:16px; }
   @media (max-width: 980px){
@@ -414,14 +419,14 @@ const css = `
   }
   .row{ display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap; }
   .field{ display:flex; flex-direction:column; gap:6px; }
-  .label{ font-size:12px; color:var(--muted); }
+  .label{ font-size:12px; color:#e8f1ff; }
   .select, .input{
-    border:1px solid var(--line); background:#fff; color:var(--text);
+    border:1px solid #cfe0ff; background:#fff; color:var(--text);
     border-radius: 12px; padding:10px 12px; outline:none;
   }
   .select:focus, .input:focus{ border-color: rgba(37, 99, 235, .6); box-shadow: 0 0 0 3px rgba(37, 99, 235, .12); }
   .btn{
-    border:1px solid var(--line); background:#fff; color:var(--text);
+    border:1px solid #cfe0ff; background:#fff; color:#0b3d6b;
     border-radius: 12px; padding:10px 12px; cursor:pointer;
   }
   .btn:hover{ background:#f8fafc; }

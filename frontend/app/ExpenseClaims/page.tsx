@@ -334,8 +334,6 @@ export default function ExpenseClaimScreen() {
 
 const styles: Record<string, React.CSSProperties> = {
   page: {
-    fontFamily:
-      'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans JP", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif',
     background: "#f3f6fb",
     minHeight: "100vh",
     padding: 24,

@@ -9,6 +9,10 @@
   --muted: #6d665e;
   --error: #c62828;
   --ok: #1b5e20;
+  --side-width: 220px;
+  --brand: #1f6feb;
+  --brand-dark: #0b4fb3;
+  --brand-ink: #e8f1ff;
 }
 
 * {
@@ -39,20 +43,169 @@ textarea {
     var(--bg);
 }
 
+.app-header,
+.app-footer {
+  background: linear-gradient(180deg, var(--brand) 0%, var(--brand-dark) 100%);
+  color: #fff;
+  padding: 14px 20px;
+  padding-left: calc(var(--side-width) + 20px);
+}
+
+.app-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 8px 18px rgba(12, 55, 120, 0.2);
+}
+
+.app-header-title {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.app-header-sub {
+  font-size: 12px;
+  color: var(--brand-ink);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+.app-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  margin-top: 24px;
+}
+
+.app-footer-text {
+  font-size: 12px;
+  color: var(--brand-ink);
+  letter-spacing: 0.08em;
+}
+
+/* 全体背景 */
+.login-wrapper {
+  height: 100vh;
+  background: linear-gradient(135deg, #4e73df, #1cc88a);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: "Segoe UI", sans-serif;
+}
+
+/* カード */
+.login-card {
+  background: #ffffff;
+  padding: 40px;
+  width: 400px;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  text-align: center;
+}
+
+/* ロゴ */
+.logo-area {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.logo-icon {
+  width: 40px;
+  height: 40px;
+  background: #1cc88a;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 10px;
+  font-weight: bold;
+}
+
+.login-title {
+  margin-bottom: 20px;
+  font-size: 22px;
+  color: #333;
+}
+
+/* 入力欄 */
+.input-group {
+  margin-bottom: 15px;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  font-size: 14px;
+  transition: 0.2s;
+}
+
+.input-group input:focus {
+  border-color: #4e73df;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(78, 115, 223, 0.2);
+}
+
+/* パスワードリンク */
+.forgot-password {
+  text-align: right;
+  margin-bottom: 20px;
+}
+
+.forgot-password a {
+  font-size: 13px;
+  color: #4e73df;
+  text-decoration: none;
+}
+
+/* ログインボタン */
+.login-button {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(90deg, #4e73df, #224abe);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.login-button:hover {
+  opacity: 0.9;
+}
+
+/* 新規登録 */
+.register-link {
+  margin-top: 20px;
+  font-size: 14px;
+}
+
+.register-link a {
+  color: #1cc88a;
+  text-decoration: none;
+  font-weight: bold;
+}
+
 .app-shell {
   display: flex;
   min-height: 100vh;
+  position: relative;
 }
 
 .side-nav {
-  width: 220px;
+  width: var(--side-width);
   background: var(--panel);
   border-right: 1px solid var(--line);
   padding: 20px 16px;
-  position: sticky;
+  position: fixed;
   top: 0;
-  align-self: flex-start;
-  min-height: 100vh;
+  left: 0;
+  height: 100vh;
+  overflow-y: auto;
+  font-size: 14px;
 }
 
 .side-title {
@@ -94,20 +247,22 @@ textarea {
 .content-area {
   flex: 1;
   min-width: 0;
+  margin-left: var(--side-width);
 }
 
 .sticky-bar {
   position: sticky;
   top: 0;
   z-index: 10;
-  background: var(--panel);
-  border-bottom: 1px solid var(--line);
+  background: linear-gradient(180deg, var(--brand) 0%, var(--brand-dark) 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.25);
   padding: 16px 20px;
   display: flex;
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 8px 18px rgba(12, 55, 120, 0.2);
+  color: #fff;
 }
 
 .title {
@@ -115,6 +270,7 @@ textarea {
   font-weight: 700;
   letter-spacing: 0.04em;
   margin-right: 12px;
+  color: #fff;
 }
 
 .controls {
@@ -122,6 +278,26 @@ textarea {
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
+}
+
+.sticky-bar label {
+  color: #fff;
+}
+
+.sticky-bar .cell-input {
+  border-color: #cfe0ff;
+}
+
+.sticky-bar .btn {
+  background: #fff;
+  border-color: #cfe0ff;
+  color: #0b3d6b;
+}
+
+.sticky-bar .btn-ghost {
+  background: transparent;
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.5);
 }
 
 .btn {
@@ -269,18 +445,30 @@ textarea {
 @media (max-width: 920px) {
   .app-shell {
     flex-direction: column;
+    position: static;
   }
 
   .side-nav {
     width: 100%;
     min-height: auto;
     position: static;
+    height: auto;
+    overflow: visible;
     border-right: none;
     border-bottom: 1px solid var(--line);
   }
 
   .side-menu {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .content-area {
+    margin-left: 0;
+  }
+
+  .app-header,
+  .app-footer {
+    padding-left: 20px;
   }
 
   .sticky-bar {
