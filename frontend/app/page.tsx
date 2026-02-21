@@ -207,7 +207,7 @@ export default function Page() {
   }
 
   return (
-    <div className="page">
+    <div className="page-content">
       <div className="sticky-bar">
         <div className="title">勤務実績（月間）</div>
         <div className="controls">
