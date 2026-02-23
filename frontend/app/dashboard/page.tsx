@@ -14,7 +14,7 @@ const fiscalMonths = [
   { label: "12月", key: "12" },
   { label: "1月", key: "01" },
   { label: "2月", key: "02" },
-  { label: "3月", key: "03" }
+  { label: "3月", key: "03" },
 ];
 
 function hhmmToMinutes(hhmm: string) {
@@ -44,8 +44,8 @@ function makeInitialRows(fiscalYear: number) {
       status: {
         timesheet: idx < 2,
         expense: idx < 1,
-        invoiceDetail: idx < 1
-      }
+        invoiceDetail: idx < 1,
+      },
     };
   });
 }
@@ -53,7 +53,7 @@ function makeInitialRows(fiscalYear: number) {
 function StatusButton({
   value,
   onClick,
-  disabled
+  disabled,
 }: {
   value: boolean;
   onClick: () => void;
@@ -81,7 +81,10 @@ export default function DashboardPage() {
     setRows(makeInitialRows(nextYear));
   };
 
-  const toggleStatus = (rowId: string, actionType: "timesheet" | "expense" | "invoiceDetail") => {
+  const toggleStatus = (
+    rowId: string,
+    actionType: "timesheet" | "expense" | "invoiceDetail",
+  ) => {
     setRows((prev) =>
       prev.map((r) => {
         if (r.id !== rowId) return r;
@@ -89,17 +92,17 @@ export default function DashboardPage() {
           ...r,
           status: {
             ...r.status,
-            [actionType]: !r.status[actionType]
-          }
+            [actionType]: !r.status[actionType],
+          },
         };
-      })
+      }),
     );
   };
 
   const totals = useMemo(() => {
     const plannedDays = rows.reduce(
       (sum, r) => sum + (Number.isFinite(r.plannedDays) ? r.plannedDays : 0),
-      0
+      0,
     );
     const standardMinutes = rows.reduce((sum, r) => {
       const hours = Number(r.standardHoursDecimal);
@@ -107,11 +110,19 @@ export default function DashboardPage() {
       return sum + Math.round(hours * 60);
     }, 0);
 
+    //const actualDays = rows.reduce(
+    //  (sum, r) => sum + (Number.isFinite(r.actualDays) ? r.actualDays : 0),
+    //  0
+    //);
     const actualDays = rows.reduce(
-      (sum, r) => sum + (Number.isFinite(r.actualDays) ? r.actualDays : 0),
-      0
+      (sum, r) =>
+        sum + (Number.isFinite(r.actualDays ?? 0) ? (r.actualDays ?? 0) : 0),
+      0,
     );
-    const actualMinutes = rows.reduce((sum, r) => sum + hhmmToMinutes(r.actualWorkTime), 0);
+    const actualMinutes = rows.reduce(
+      (sum, r) => sum + hhmmToMinutes(r.actualWorkTime),
+      0,
+    );
 
     const timesheetConfirmed = rows.filter((r) => r.status.timesheet).length;
     const expenseConfirmed = rows.filter((r) => r.status.expense).length;
@@ -124,7 +135,7 @@ export default function DashboardPage() {
       actualMinutes,
       timesheetConfirmed,
       expenseConfirmed,
-      invoiceConfirmed
+      invoiceConfirmed,
     };
   }, [rows]);
 
@@ -162,7 +173,6 @@ export default function DashboardPage() {
               </button>
             </div>
           </div>
-
         </section>
 
         <section className="dashboard-table-wrap">
@@ -182,7 +192,10 @@ export default function DashboardPage() {
               </thead>
               <tbody>
                 {rows.map((r, i) => (
-                  <tr key={r.id} className={i % 2 === 0 ? "row-even" : "row-odd"}>
+                  <tr
+                    key={r.id}
+                    className={i % 2 === 0 ? "row-even" : "row-odd"}
+                  >
                     <td>
                       <div className="month-cell">
                         <span>{r.monthLabel}</span>
@@ -231,9 +244,15 @@ export default function DashboardPage() {
                   <td className="right total-value">
                     {minutesToHhmm(totals.actualMinutes)}
                   </td>
-                  <td className="center total-mini">{totals.timesheetConfirmed}/12</td>
-                  <td className="center total-mini">{totals.expenseConfirmed}/12</td>
-                  <td className="center total-mini">{totals.invoiceConfirmed}/12</td>
+                  <td className="center total-mini">
+                    {totals.timesheetConfirmed}/12
+                  </td>
+                  <td className="center total-mini">
+                    {totals.expenseConfirmed}/12
+                  </td>
+                  <td className="center total-mini">
+                    {totals.invoiceConfirmed}/12
+                  </td>
                 </tr>
               </tfoot>
             </table>
@@ -244,7 +263,8 @@ export default function DashboardPage() {
             <ul>
               <li>
                 ここではReact上で擬似ボタン（確定/未確定）を実装していますが、Excelで同様にやる場合は
-                「セルをボタン化 + 共通処理1本化（クリック位置→対象月→アクション判定）」が効率的です。
+                「セルをボタン化 +
+                共通処理1本化（クリック位置→対象月→アクション判定）」が効率的です。
               </li>
               <li>
                 次のステップ：row.id（YYYYMM）をキーに、API（またはExcel集計結果）を読み込み、
