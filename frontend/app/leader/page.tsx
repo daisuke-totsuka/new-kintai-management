@@ -4,13 +4,14 @@ import { useState } from "react";
 import YearMonthSelector from "@/components/leader/YearMonthSelector";
 import StatusSummary from "@/components/leader/StatusSummary";
 import SubordinateTable from "@/components/leader/SubordinateTable";
+import type { SubordinateRow } from "@/components/leader/SubordinateTable";
 
 export default function LeaderPage() {
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth() + 1);
 
-  const rows = [
+  const rows: SubordinateRow[] = [
     {
       user_id: "1",
       user_name: "山田太郎",
