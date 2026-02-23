@@ -1,6 +1,11 @@
-type StatusKey = "none" | "draft" | "submitted" | "approved" | "rejected";
+export type StatusKey =
+  | "none"
+  | "draft"
+  | "submitted"
+  | "approved"
+  | "rejected";
 
-type SubordinateRow = {
+export type SubordinateRow = {
   user_id: string;
   user_name: string;
   attendance_status: StatusKey;
