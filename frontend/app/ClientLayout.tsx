@@ -20,7 +20,6 @@ export default function ClientLayout({
   return (
     <div className="page">
       {chrome}
-      {children}
     </div>
   );
 }

@@ -118,8 +118,8 @@ export default function BizClaimDetailScreen() {
 
   return (
     <div style={styles.page}>
-      <div style={styles.header}>
-        <div style={styles.headerTitle}>業務請求分明細</div>
+      <div className="title-card page-header">
+        <div className="page-title">業務請求分明細</div>
       </div>
 
       <div style={styles.card}>
@@ -322,21 +322,7 @@ const styles: Record<string, React.CSSProperties> = {
   page: {
     background: "#f3f6fb",
     minHeight: "100vh",
-    padding: 24,
-  },
-  header: {
-    background: "linear-gradient(180deg, #1f78ff 0%, #0b5ed7 100%)",
-    borderRadius: 10,
-    padding: "18px 18px",
-    boxShadow: "0 8px 18px rgba(20, 80, 160, 0.18)",
-    color: "#fff",
-    marginBottom: 16,
-  },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: 800,
-    textAlign: "center",
-    letterSpacing: 1,
+    padding: "24px 0",
   },
   card: {
     background: "#fff",

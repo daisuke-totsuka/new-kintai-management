@@ -8,6 +8,7 @@ type WorkRow = {
   startTime: string;
   endTime: string;
   breakMinutes: string;
+  workType: string;
   notes: string;
 };
 
@@ -31,14 +32,15 @@ function getDaysInMonth(year: number, month: number): WorkRow[] {
   const last = new Date(year, month + 1, 0);
   for (let d = 1; d <= last.getDate(); d += 1) {
     const date = new Date(year, month, d);
-    result.push({
-      workDate: formatDate(date),
-      dayOfWeek: WEEKDAYS[date.getDay()],
-      startTime: "",
-      endTime: "",
-      breakMinutes: "",
-      notes: "",
-    });
+      result.push({
+        workDate: formatDate(date),
+        dayOfWeek: WEEKDAYS[date.getDay()],
+        startTime: "",
+        endTime: "",
+        breakMinutes: "",
+        workType: "",
+        notes: "",
+      });
   }
   return result;
 }
@@ -138,10 +140,15 @@ export default function Page() {
       const start = row.startTime.trim();
       const end = row.endTime.trim();
       const breakStr = row.breakMinutes.trim();
+      const workType = row.workType.trim();
       const notes = row.notes.trim();
 
       const hasAny =
-        start !== "" || end !== "" || breakStr !== "" || notes !== "";
+        start !== "" ||
+        end !== "" ||
+        breakStr !== "" ||
+        workType !== "" ||
+        notes !== "";
       const hasTimeAny = start !== "" || end !== "" || breakStr !== "";
 
       if (!hasAny) return;
@@ -265,8 +272,8 @@ export default function Page() {
 
   return (
     <div className="page-content">
-      <div className="sticky-bar">
-        <div className="title">勤務実績（月間）</div>
+      <div className="title-card page-header is-sticky">
+        <div className="page-title">勤務実績（月間）</div>
         <div className="controls">
           <label>
             年月:
@@ -311,6 +318,7 @@ export default function Page() {
               <th>終了時刻</th>
               <th>休憩時間(分)</th>
               <th>勤務時間(分)</th>
+              <th>勤務区分</th>
               <th>備考</th>
             </tr>
           </thead>
@@ -397,6 +405,30 @@ export default function Page() {
                     {workMin !== null ? workMin : "--"}
                   </td>
                   <td>
+                    <select
+                      className="cell-input"
+                      value={row.workType}
+                      onChange={(e) =>
+                        updateRow(index, "workType", e.target.value)
+                      }
+                    >
+                      <option value=""></option>
+                      <option value="休出">休出</option>
+                      <option value="有休">有休</option>
+                      <option value="前休">前休</option>
+                      <option value="後休">後休</option>
+                      <option value="特休">特休</option>
+                      <option value="振休">振休</option>
+                      <option value="振予">振予</option>
+                      <option value="欠勤">欠勤</option>
+                      <option value="遅刻">遅刻</option>
+                      <option value="早退">早退</option>
+                      <option value="遅延">遅延</option>
+                      <option value="ｼﾌﾄ">ｼﾌﾄ</option>
+                      <option value="休業">休業</option>
+                    </select>
+                  </td>
+                  <td>
                     <input
                       className={`cell-input ${
                         errorMap.has(`${row.workDate}:notes`) ? "error" : ""
@@ -415,6 +447,7 @@ export default function Page() {
             <tr className="sum-row">
               <td colSpan={5}>月末合計</td>
               <td>{totalMinutes}</td>
+              <td></td>
               <td></td>
             </tr>
           </tbody>

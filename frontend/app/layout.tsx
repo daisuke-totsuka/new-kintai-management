@@ -1,6 +1,6 @@
 import "./globals.css";
 import type { ReactNode } from "react";
-import Link from "next/link";
+import SideNav from "./SideNav";
 import ClientLayout from "./ClientLayout";
 
 export const metadata = {
@@ -22,12 +22,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               <div className="app-shell">
                 <aside className="side-nav">
                   <div className="side-title">メニュー</div>
-                  <nav className="side-menu">
-                    <Link className="side-item" href="/attendance">勤務表</Link>
-                    <Link className="side-item" href="/AttendanceSettings">勤務表設定</Link>
-                    <Link className="side-item" href="/ExpenseClaims">経費請求</Link>
-                    <Link className="side-item" href="/BusinessBillDetails">業務請求分明細</Link>
-                  </nav>
+                  <SideNav />
                 </aside>
                 <div className="content-area">{children}</div>
               </div>

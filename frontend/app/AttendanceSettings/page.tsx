@@ -216,10 +216,10 @@ export default function AttendanceSettings() {
 
   return (
     <div className="attendance-settings">
-      <header className="header">
+      <header className="header title-card page-header">
         <div className="titleBlock">
           <div className="yearBig">{draft.year}</div>
-          <div className="title">年度設定</div>
+          <div className="page-title">年度設定</div>
         </div>
 
         <div className="headerActions">
@@ -386,19 +386,15 @@ const css = `
   }
   .attendance-settings *{ box-sizing: border-box; }
   .attendance-settings{
-    background:var(--bg); min-height:100vh; padding:24px;
+    background:var(--bg); min-height:100vh; padding:24px 0;
     color:var(--text);
   }
   .header{
     display:flex; align-items:center; justify-content:space-between;
     gap:16px; margin-bottom:16px;
-    background: linear-gradient(180deg, #1f6feb 0%, #0b4fb3 100%);
-    color:#fff; padding:16px 18px; border-radius: 14px;
-    box-shadow: 0 10px 22px rgba(12, 55, 120, 0.2);
   }
   .titleBlock{ display:flex; align-items:baseline; gap:12px; }
   .yearBig{ font-size:44px; font-weight:800; letter-spacing: .5px; }
-  .title{ font-size:18px; font-weight:700; color:#e8f1ff; }
   .headerActions{ display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap; }
   .grid{ display:grid; grid-template-columns: 1.05fr 1fr; gap:16px; }
   @media (max-width: 980px){
@@ -419,7 +415,7 @@ const css = `
   }
   .row{ display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap; }
   .field{ display:flex; flex-direction:column; gap:6px; }
-  .label{ font-size:12px; color:#e8f1ff; }
+  .label{ font-size:12px; color:var(--muted); }
   .select, .input{
     border:1px solid #cfe0ff; background:#fff; color:var(--text);
     border-radius: 12px; padding:10px 12px; outline:none;
