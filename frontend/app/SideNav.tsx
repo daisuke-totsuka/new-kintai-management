@@ -15,12 +15,17 @@ const menuSections = [
     ]
   },
   {
-    title: "上長メニュー",
+    title: "経理メニュー",
     items: [{ href: "/leader", label: "提出状況" }]
   },
   {
     title: "管理メニュー",
-    items: [{ href: "/AttendanceSettings", label: "勤務表設定" }]
+    items: [
+      { href: "/AttendanceSettings", label: "勤務表設定" },
+      { href: "/UserManagement", label: "ユーザ検索" },
+      { href: "/admin/users/new", label: "ユーザ登録" },
+      { href: "/admin/users/edit", label: "ユーザ編集" }
+    ]
   }
 ];
 
