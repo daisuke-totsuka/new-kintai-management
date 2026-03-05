@@ -128,3 +128,35 @@ app = create_app()
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=app.config["DEBUG"])
+# Flaskフレームワークをインポート
+from flask import Flask
+
+# .envファイルを読み込むためのライブラリ
+from dotenv import load_dotenv
+
+# OSの環境変数を扱うためのライブラリ
+import os
+
+
+# 実行環境名を取得（local / dev / st / prod）
+env_name = os.getenv("APP_ENV", "local")
+
+# 環境に応じた.envファイルを読み込む
+load_dotenv(f".env.{env_name}")
+
+
+# Flaskアプリケーションを生成
+app = Flask(__name__)
+
+
+# テスト用ルート（動作確認用）
+@app.route("/")
+def index():
+    # APIが動作しているか確認するメッセージ
+    return "Backend is running"
+
+
+# Flaskサーバー起動
+if __name__ == "__main__":
+    # デバッグモードでサーバー起動
+    app.run(debug=True)
