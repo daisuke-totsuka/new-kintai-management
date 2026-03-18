@@ -1,31 +1,39 @@
-# OS環境変数を取得するためのモジュール
-import os
+# DBタイプ設定を取得
+from config.config import DB_TYPE
+
+# 各DBドライバ
+from db.drivers.supabase_driver import SupabaseDriver
+# from db.drivers.postgres_driver import PostgresDriver
+# from db.drivers.oracle_driver import OracleDriver
+# from db.drivers.sqlserver_driver import SqlServerDriver
 
 
-# DB接続を取得する関数
-def get_db():
+class DBConnection:
+    """
+    DB接続の共通クラス
+    DB種類ごとにドライバを切替する
+    """
 
-    # 環境変数からDB種類を取得
-    db_type = os.getenv("DB_TYPE")
+    def __init__(self):
 
-    # PostgreSQLの場合
-    if db_type == "postgres":
+        # DB種類によってドライバを切替
+        if DB_TYPE == "supabase":
+            self.driver = SupabaseDriver()
 
-        # PostgreSQL接続関数をインポート
-        from db.postgres import get_postgres_conn
+        elif DB_TYPE == "postgres":
+            self.driver = PostgresDriver()
 
-        # PostgreSQL接続を返す
-        return get_postgres_conn()
+        elif DB_TYPE == "oracle":
+            self.driver = OracleDriver()
 
-    # Oracleの場合
-    elif db_type == "oracle":
+        elif DB_TYPE == "sqlserver":
+            self.driver = SqlServerDriver()
 
-        # Oracle接続関数をインポート
-        from db.oracle import get_oracle_conn
+        else:
+            raise Exception("Unknown DB type")
 
-        # Oracle接続を返す
-        return get_oracle_conn()
-
-    # 未対応DBの場合は例外
-    else:
-        raise Exception("Unsupported DB_TYPE")
+    def find_one(self, table, filters):
+        """
+        1件検索
+        """
+        return self.driver.find_one(table, filters)

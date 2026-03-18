@@ -15,8 +15,31 @@ export default function Page() {
 
     // ここでAPI接続
     // await fetch("/api/login", { ... })
+    try {
+      // バックエンドのログインAPIを呼び出す
+      const response = await fetch("http://localhost:5000/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: email,
+          password: password,
+        }),
+      });
 
-    router.push("/attendance");
+      const data = await response.json();
+
+      if (data.success) {
+        console.log("遷移します");
+        router.push("/attendance");
+      } else {
+        alert("ログイン失敗");
+      }
+    } catch (error) {
+      console.log("ログインエラー");
+      console.error("ログインエラー:", error);
+    }
   };
 
   return (
