@@ -1,7 +1,7 @@
 from flask import Flask
 
 # API
-from app.login.login import login_bp
+from api.login.login import login_bp
 
 # config
 from config.config import FLASK_HOST, FLASK_PORT
