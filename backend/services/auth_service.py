@@ -14,12 +14,17 @@ class AuthService:
 
     def login(self, email, password):
 
+        if not email or not password:
+          return None
+
         # ユーザー取得
         user = self.repo.find_by_username(email)
 
         #if not user:
-        if not user:
-            return None
+        #if not user:
+        #    return None
+        if not user or not user.password:
+          return None
 
         # bcryptパスワードチェック
         if not bcrypt.checkpw(

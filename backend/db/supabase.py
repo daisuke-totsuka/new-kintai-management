@@ -1,13 +1,20 @@
 from supabase import create_client
 import os
+from dotenv import load_dotenv
 
+load_dotenv()  # 念のためここにも
 
 class SupabaseDB:
 
     def __init__(self):
 
+        print("ALL ENV:", os.environ)
+
         url = os.getenv("SUPABASE_URL")
         key = os.getenv("SUPABASE_KEY")
+
+        print("URL:", url)
+        print("KEY:", key)
 
         self.client = create_client(url, key)
 

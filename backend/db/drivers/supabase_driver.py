@@ -1,5 +1,7 @@
 # Supabaseライブラリ
 from supabase import create_client
+from dotenv import load_dotenv
+import os
 
 # 設定
 from config.config import SUPABASE_URL, SUPABASE_KEY
@@ -8,6 +10,8 @@ from config.config import SUPABASE_URL, SUPABASE_KEY
 class SupabaseDriver:
 
     def __init__(self):
+
+        print("ALL ENV:", os.environ)
 
         # Supabaseクライアント作成
         self.client = create_client(

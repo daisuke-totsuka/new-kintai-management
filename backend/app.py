@@ -1,4 +1,6 @@
 import os
+from dotenv import load_dotenv
+load_dotenv()
 from flask import Flask
 
 # API
@@ -7,15 +9,19 @@ from api.login.login import login_bp
 # config
 from config.config import FLASK_HOST, FLASK_PORT
 
-from flask_cors import CORS
-
 # Flaskアプリ
 app = Flask(__name__)
 
+from flask_cors import CORS
+#CORS(app)
+#CORS(app, resources={r"/*": {"origins": "*"}})
+CORS(
+    app,
+    resources={r"/*": {"origins": "http://localhost:3000"}},
+    supports_credentials=True
+)
 # API登録
 app.register_blueprint(login_bp)
-
-CORS(app)
 
 # 起動
 if __name__ == "__main__":
