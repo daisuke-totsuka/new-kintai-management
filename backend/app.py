@@ -15,11 +15,22 @@ app = Flask(__name__)
 from flask_cors import CORS
 #CORS(app)
 #CORS(app, resources={r"/*": {"origins": "*"}})
-CORS(
-    app,
-    resources={r"/*": {"origins": "http://localhost:3000"}},
-    supports_credentials=True
+
+origins = os.getenv("CORS_ORIGINS", "") 
+origins_list = [o.strip() for o in origins.split(",")] 
+
+CORS( 
+    app, 
+    resources={r"/*": {"origins": origins_list}}, 
+    supports_credentials=True 
 )
+
+#CORS(
+#    app,
+#    resources={r"/*": {"origins": "http://localhost:3000"}},
+#    supports_credentials=True
+#)
+
 # API登録
 app.register_blueprint(login_bp)
 
