@@ -8,8 +8,6 @@ class SupabaseDB:
 
     def __init__(self):
 
-        print("ALL ENV:", os.environ)
-
         url = os.getenv("SUPABASE_URL")
         key = os.getenv("SUPABASE_KEY")
 

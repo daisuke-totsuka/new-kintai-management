@@ -27,6 +27,7 @@ export default function Page() {
           email: email,
           password: password,
         }),
+        credentials: "include", // cookie保存
       });
 
       const data = await response.json();

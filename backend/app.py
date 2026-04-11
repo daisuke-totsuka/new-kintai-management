@@ -13,6 +13,7 @@ from config.config import FLASK_HOST, FLASK_PORT
 app = Flask(__name__)
 
 from flask_cors import CORS
+from routes.auth import auth_bp
 #CORS(app)
 #CORS(app, resources={r"/*": {"origins": "*"}})
 
@@ -32,6 +33,7 @@ CORS(
 #)
 
 # API登録
+app.register_blueprint(auth_bp, url_prefix="/auth")
 app.register_blueprint(login_bp)
 
 # 起動

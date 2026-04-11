@@ -3,6 +3,12 @@ from flask import Blueprint, request, jsonify
 from services.auth_service import AuthService
 from flask_cors import CORS
 
+import jwt
+import datetime
+from flask import make_response
+
+from common.auth import SECRET_KEY
+
 # Blueprint作成
 login_bp = Blueprint("login", __name__)
 #CORS(login_bp)
@@ -42,13 +48,37 @@ def login():
         
        if not user:
             return jsonify({"success": False}), 401
+       
+       # JWT生成
+       token = jwt.encode({
+          "email": email,
+          "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=1)
+       }, SECRET_KEY, algorithm="HS256")
+
+       # Cookieにセット
+       response = make_response(jsonify({
+          "success": True,
+          "user_id": user.id,
+          "email": user.email
+       }))
+
+       response.set_cookie(
+          "access_token",
+          token,
+          httponly=True,
+          secure=True,        # 本番のみ
+          samesite="Strict",
+          max_age=3600
+       )
+
+       return response
             
-       return jsonify({
-            "success": True,
-            "user_id": user.id,
-            "email"  : user.email
-       })
+       #return jsonify({
+       #     "success": True,
+       #     "user_id": user.id,
+       #     "email"  : user.email
+       #})
     
     except Exception as e:
-        print("🔥 ERROR:", e)   # ←これ重要
+        print("ERROR:", e)   # ←これ重要
         return jsonify({"error": "Server error"}), 500
