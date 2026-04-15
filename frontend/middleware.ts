@@ -37,14 +37,15 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    "/attendance/:path*",
-    "/dashboard/:path*",
-    "/admin/:path*",
-    "/leader/:path*",
-    "/UserManagement/:path*",
-    "/ExpenseClaims/:path*",
-    "/BusinessBillDetails/:path*",
-    "/AttendanceSettings/:path*",
-  ],
+  matcher: ["/:path*"],
+  //matcher: [
+  //  "/attendance/:path*",
+  //  "/dashboard/:path*",
+  //  "/admin/:path*",
+  //  "/leader/:path*",
+  //  "/UserManagement/:path*",
+  //  "/ExpenseClaims/:path*",
+  //  "/BusinessBillDetails/:path*",
+  //  "/AttendanceSettings/:path*",
+  //],
 };
