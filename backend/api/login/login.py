@@ -67,7 +67,7 @@ def login():
           token,
           httponly=True,
           secure=True,        # 本番のみ
-          samesite="Strict",
+          samesite="None",
           max_age=3600
        )
 
