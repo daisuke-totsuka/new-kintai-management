@@ -13,6 +13,8 @@ export async function middleware(req: NextRequest) {
 
   const cookie = req.headers.get("cookie") || "";
 
+  console.log("COOKIE:", cookie);
+
   try {
     //const res = await fetch("http://localhost:5000/auth/me", {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
