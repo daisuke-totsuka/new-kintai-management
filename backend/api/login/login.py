@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 
 from services.auth_service import AuthService
+import os
 from flask_cors import CORS
 
 import jwt
@@ -11,7 +12,14 @@ from common.auth import SECRET_KEY
 
 # Blueprint作成
 login_bp = Blueprint("login", __name__)
+
+FRONTEND_URL = os.getenv("CORS_ORIGINS")
 #CORS(login_bp)
+CORS(
+    app,
+    supports_credentials=True,
+    origins=[FRONTEND_URL]
+)
 
 # Service生成
 service = AuthService()
