@@ -68,6 +68,7 @@ def login():
           httponly=True,
           secure=True,        # 本番のみ
           samesite="None",
+          domain=".onrender.com",  # ← ★追加（超重要）
           max_age=3600
        )
 
