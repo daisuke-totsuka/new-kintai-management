@@ -17,13 +17,21 @@ from routes.auth import auth_bp
 #CORS(app)
 #CORS(app, resources={r"/*": {"origins": "*"}})
 
-origins = os.getenv("CORS_ORIGINS", "") 
-origins_list = [o.strip() for o in origins.split(",")] 
+#origins = os.getenv("CORS_ORIGINS", "") 
+#origins_list = [o.strip() for o in origins.split(",")] 
 
-CORS( 
-    app, 
-    resources={r"/*": {"origins": origins_list}}, 
-    supports_credentials=True 
+#CORS( 
+#    app, 
+#    resources={r"/*": {"origins": origins_list}}, 
+#    supports_credentials=True 
+#)
+
+FRONTEND_URL = os.getenv("CORS_ORIGINS")
+#CORS(login_bp)
+CORS(
+    app,
+    supports_credentials=True,
+    origins=[FRONTEND_URL]
 )
 
 #CORS(

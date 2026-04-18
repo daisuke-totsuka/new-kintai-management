@@ -13,14 +13,6 @@ from common.auth import SECRET_KEY
 # Blueprint作成
 login_bp = Blueprint("login", __name__)
 
-FRONTEND_URL = os.getenv("CORS_ORIGINS")
-#CORS(login_bp)
-CORS(
-    app,
-    supports_credentials=True,
-    origins=[FRONTEND_URL]
-)
-
 # Service生成
 service = AuthService()
 
