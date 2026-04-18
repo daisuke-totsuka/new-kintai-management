@@ -31,7 +31,8 @@ FRONTEND_URL = os.getenv("CORS_ORIGINS")
 CORS(
     app,
     supports_credentials=True,
-    origins=[FRONTEND_URL]
+#    origins=[FRONTEND_URL]
+    origins="*" 
 )
 
 #CORS(
