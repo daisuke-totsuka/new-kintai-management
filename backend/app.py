@@ -28,12 +28,13 @@ from routes.auth import auth_bp
 
 FRONTEND_URL = os.getenv("CORS_ORIGINS")
 #CORS(login_bp)
-CORS(
-    app,
-    supports_credentials=True,
+#CORS(
+#    app,
+#    supports_credentials=True,
 #    origins=[FRONTEND_URL]
-    origins="*" 
-)
+#)
+
+CORS(app, supports_credentials=True)
 
 #CORS(
 #    app,
