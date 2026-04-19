@@ -1,14 +1,17 @@
-import { cookies } from "next/headers";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL!;
 
 export async function requireAuth() {
-  const cookieStore = cookies();
+  const headerList = headers();
+  const cookie = headerList.get("cookie"); // ← string
 
   const res = await fetch(`${API_BASE_URL}/auth/me`, {
+    method: "GET",
     headers: {
-      cookie: cookieStore.toString(),
+      //cookie: cookieStore.toString(),
+      Cookie: cookie ?? "", // ← ここで転送
     },
     cache: "no-store",
   });
