@@ -7,6 +7,8 @@ export async function requireAuth() {
   const headerList = headers();
   const cookie = headerList.get("cookie"); // ← string
 
+  console.log("🔥 cookie:", cookie); // ← 追加
+
   const res = await fetch(`${API_BASE_URL}/auth/me`, {
     method: "GET",
     headers: {
