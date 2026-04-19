@@ -20,9 +20,9 @@ export async function requireAuth() {
 
   console.log("🔥 status:", res.status);
 
-  //if (!res.ok) {
-  //  redirect("/");
-  //}
+  if (!res.ok) {
+    redirect("/");
+  }
 
   const data = await res.json();
 
