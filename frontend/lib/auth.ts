@@ -18,6 +18,8 @@ export async function requireAuth() {
     cache: "no-store",
   });
 
+  console.log("🔥 status:", res.status);
+
   if (!res.ok) {
     redirect("/");
   }
