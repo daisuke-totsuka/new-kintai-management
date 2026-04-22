@@ -24,9 +24,9 @@ export async function requireAuth() {
     cache: "no-store",
   });
 
-  //if (!res.ok) {
-  //  redirect("/");
-  //}
+  if (!res.ok) {
+    redirect("/");
+  }
 
   const data = await res.json();
   return data.user;
