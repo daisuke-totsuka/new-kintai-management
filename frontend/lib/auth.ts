@@ -25,6 +25,9 @@ export async function requireAuth() {
   });
 
   if (!res.ok) {
+    console.error("Auth failed:", res.status);
+    const text = await res.text();
+    console.error(text);
     redirect("/");
   }
 
