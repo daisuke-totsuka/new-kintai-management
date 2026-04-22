@@ -18,16 +18,26 @@ export default function Page() {
     try {
       // バックエンドのログインAPIを呼び出す
       const API_URL = process.env.NEXT_PUBLIC_API_URL;
-      const response = await fetch(`${API_URL}/login`, {
+      //const response = await fetch(`${API_URL}/login`, {
+      //  method: "POST",
+      //  headers: {
+      //    "Content-Type": "application/json",
+      //  },
+      //  body: JSON.stringify({
+      //    email: email,
+      //    password: password,
+      //  }),
+      //  credentials: "include", // cookie保存
+      //});
+
+      //const response = await fetch("/api/login", {
+      const response = await fetch("http://localhost:5000/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          email: email,
-          password: password,
-        }),
-        credentials: "include", // cookie保存
+        body: JSON.stringify({ email, password }),
+        credentials: "include",
       });
 
       const data = await response.json();
