@@ -61,6 +61,8 @@ def login():
           "user_id": user.id,
           "email": user.email
        }))
+       
+       is_production = os.getenv("ENV") == "production"
 
        response.set_cookie(
           "access_token",
