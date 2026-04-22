@@ -16,6 +16,8 @@ login_bp = Blueprint("login", __name__)
 # Service生成
 service = AuthService()
 
+IS_PROD = os.getenv("ENV") == "production"
+
 
 #@login_bp.route("/login", methods=["POST"])
 #@login_bp.route("/login", methods=["POST", "OPTIONS"])
@@ -62,7 +64,6 @@ def login():
           "email": user.email
        }))
        
-       IS_PROD = os.getenv("ENV") == "production"
 
        response.set_cookie(
           "access_token",
