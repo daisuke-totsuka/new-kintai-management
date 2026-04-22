@@ -62,7 +62,7 @@ def login():
           "email": user.email
        }))
        
-       is_production = os.getenv("ENV") == "production"
+       IS_PROD = os.getenv("ENV") == "production"
 
        response.set_cookie(
           "access_token",
