@@ -68,8 +68,7 @@ def login():
           "access_token",
           token,
           httponly=True,
-          #secure=True,        # 本番のみ
-          secure=False,
+          secure=IS_PROD,
           samesite="Lax",
           #domain=".onrender.com",  # ← ★追加（超重要）
           max_age=3600
