@@ -72,6 +72,7 @@ def login():
           secure=IS_PROD,
           samesite="Lax",
           #domain=".onrender.com",  # ← ★追加（超重要）
+          domain=".onrender.com" if IS_PROD else None,
           max_age=3600
        )
 
