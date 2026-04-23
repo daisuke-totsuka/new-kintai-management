@@ -16,8 +16,8 @@ login_bp = Blueprint("login", __name__)
 # Service生成
 service = AuthService()
 
-IS_PROD = os.getenv("ENV") == "production"
-
+#IS_PROD = os.getenv("ENV") == "production"
+IS_PROD = os.getenv("IS_PROD") == "True"
 
 #@login_bp.route("/login", methods=["POST"])
 #@login_bp.route("/login", methods=["POST", "OPTIONS"])
