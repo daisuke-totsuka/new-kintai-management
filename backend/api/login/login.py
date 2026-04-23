@@ -17,7 +17,7 @@ login_bp = Blueprint("login", __name__)
 service = AuthService()
 
 #IS_PROD = os.getenv("ENV") == "production"
-IS_PROD = os.getenv("IS_PROD") == "True"
+IS_PROD = os.getenv("IS_PROD", "false").lower() == "true"
 
 #@login_bp.route("/login", methods=["POST"])
 #@login_bp.route("/login", methods=["POST", "OPTIONS"])
@@ -70,7 +70,7 @@ def login():
           token,
           httponly=True,
           secure=IS_PROD,
-          samesite="Lax",
+          samesite="None",
           #domain=".onrender.com",  # ← ★追加（超重要）
           domain=".onrender.com" if IS_PROD else None,
           max_age=3600
