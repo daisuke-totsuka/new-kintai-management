@@ -1,5 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 type WorkRow = {
   workDate: string;
@@ -75,6 +77,19 @@ function isFutureDate(iso: string): boolean {
 }
 
 export default function ClientPage({ user }: { user: any }) {
+  const router = useRouter();
+
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/auth/me`, {
+      credentials: "include",
+    }).then((res) => {
+      if (!res.ok) {
+        router.push("/");
+      }
+    });
+  }, []);
+
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth());

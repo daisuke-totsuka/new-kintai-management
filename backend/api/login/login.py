@@ -70,7 +70,8 @@ def login():
           token,
           httponly=True,
           secure=IS_PROD,
-          samesite="None",
+          #samesite="None",
+          samesite="None" if IS_PROD else "Lax",  # ← ★ここが重要
           #domain=".onrender.com",  # ← ★追加（超重要）
           #domain=".onrender.com" if IS_PROD else None,
           max_age=3600
