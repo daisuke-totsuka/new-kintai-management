@@ -76,7 +76,8 @@ function isFutureDate(iso: string): boolean {
   );
 }
 
-export default function ClientPage({ user }: { user: any }) {
+// export default function ClientPage({ user }: { user: any }) {
+export default function ClientPage() {
   const router = useRouter();
 
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
