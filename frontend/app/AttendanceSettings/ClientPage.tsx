@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 
 type MonthIndex = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
 
@@ -112,7 +113,20 @@ function createDefaultSettings(year: number): YearSettings {
   return { year, gasolineByMonth, vacationDates: new Set<string>() };
 }
 
-export default function ClientPage({ user }: { user: any }) {
+export default function ClientPage({ user }: { user?: any } = {}) {
+  const router = useRouter();
+
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/auth/me`, {
+      credentials: "include",
+    }).then((res) => {
+      if (!res.ok) {
+        router.push("/");
+      }
+    });
+  }, []);
+
   const currentYear = new Date().getFullYear();
 
   // Year options

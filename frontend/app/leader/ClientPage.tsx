@@ -1,12 +1,26 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import YearMonthSelector from "@/components/leader/YearMonthSelector";
 import StatusSummary from "@/components/leader/StatusSummary";
 import SubordinateTable from "@/components/leader/SubordinateTable";
 import type { SubordinateRow } from "@/components/leader/SubordinateTable";
 
-export default function ClientPage({ user }: { user: any }) {
+export default function ClientPage({ user }: { user?: any } = {}) {
+  const router = useRouter();
+
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/auth/me`, {
+      credentials: "include",
+    }).then((res) => {
+      if (!res.ok) {
+        router.push("/");
+      }
+    });
+  }, []);
+
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth() + 1);

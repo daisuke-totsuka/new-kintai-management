@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 
 const fiscalMonths = [
   { label: "4月", key: "04" },
@@ -72,7 +73,20 @@ function StatusButton({
   );
 }
 
-export default function ClientPage({ user }: { user: any }) {
+export default function ClientPage() {
+  const router = useRouter();
+
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/auth/me`, {
+      credentials: "include",
+    }).then((res) => {
+      if (!res.ok) {
+        router.push("/");
+      }
+    });
+  }, []);
+
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth());
