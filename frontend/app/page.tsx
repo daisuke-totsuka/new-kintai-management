@@ -15,8 +15,43 @@ export default function Page() {
 
     // ここでAPI接続
     // await fetch("/api/login", { ... })
+    try {
+      // バックエンドのログインAPIを呼び出す
+      const API_URL = process.env.NEXT_PUBLIC_API_URL;
+      //const response = await fetch(`${API_URL}/login`, {
+      //  method: "POST",
+      //  headers: {
+      //    "Content-Type": "application/json",
+      //  },
+      //  body: JSON.stringify({
+      //    email: email,
+      //    password: password,
+      //  }),
+      //  credentials: "include", // cookie保存
+      //});
 
-    router.push("/attendance");
+      //const response = await fetch("/api/login", {
+      const response = await fetch(`${API_URL}/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+        credentials: "include",
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        console.log("遷移します");
+        router.push("/attendance");
+      } else {
+        alert("ログイン失敗");
+      }
+    } catch (error) {
+      console.log("ログインエラー");
+      console.error("ログインエラー:", error);
+    }
   };
 
   return (
