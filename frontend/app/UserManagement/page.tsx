@@ -1,6 +1,5 @@
-import { requireAuth } from "@/lib/auth";
-import ClientPage from "./ClientPage";
+import { redirect } from "next/navigation";
 
-export default async function Page() {
-  return <ClientPage />;
+export default function Page() {
+  redirect("/admin/users");
 }

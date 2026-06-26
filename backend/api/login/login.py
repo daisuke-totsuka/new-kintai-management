@@ -19,21 +19,11 @@ service = AuthService()
 #IS_PROD = os.getenv("ENV") == "production"
 IS_PROD = os.getenv("IS_PROD", "false").lower() == "true"
 
-#@login_bp.route("/login", methods=["POST"])
-#@login_bp.route("/login", methods=["POST", "OPTIONS"])
 @login_bp.route("/login", methods=["POST"])
 def login():
     print("logi nAPI called")
-    
-    #if request.method == "OPTIONS":
-        #return jsonify({"message": "ok"}), 200
-        #data = request.json
  
     try:
-       #data = request.get_json(silent=True)
-       
-       #if not data:
-            #return jsonify({"error": "Invalid JSON"}), 400
        
        data = request.get_json()
 
@@ -54,6 +44,9 @@ def login():
        # JWT生成
        token = jwt.encode({
           "email": email,
+          "employee_id": user.employee_id,
+          "role_id": user.role_id,
+          "role": user.role,
           "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=1)
        }, SECRET_KEY, algorithm="HS256")
 
@@ -61,19 +54,20 @@ def login():
        response = make_response(jsonify({
           "success": True,
           "user_id": user.id,
-          "email": user.email
+          "employee_id": user.employee_id,
+          "email": user.email,
+          "role_id": user.role_id,
+          "role": user.role
        }))
        
-
        response.set_cookie(
           "access_token",
           token,
           httponly=True,
           secure=IS_PROD,
-          #samesite="None",
-          samesite="None" if IS_PROD else "Lax",  # ← ★ここが重要
-          #domain=".onrender.com",  # ← ★追加（超重要）
-          #domain=".onrender.com" if IS_PROD else None,
+          #secure=False,
+          samesite="None" if IS_PROD else "Lax",
+          #samesite="Lax" if IS_PROD else "None",
           max_age=3600
        )
 

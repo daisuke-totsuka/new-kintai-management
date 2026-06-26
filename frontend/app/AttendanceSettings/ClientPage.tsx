@@ -418,16 +418,16 @@ const css = `
   }
   .attendance-settings *{ box-sizing: border-box; }
   .attendance-settings{
-    background:var(--bg); min-height:100vh; padding:24px 0;
+    background:var(--bg); min-height:100vh; padding:0;
     color:var(--text);
   }
   .header{
     display:flex; align-items:center; justify-content:space-between;
-    gap:16px; margin-bottom:16px;
+    gap:10px; margin-bottom:0;
   }
-  .titleBlock{ display:flex; align-items:baseline; gap:12px; }
-  .yearBig{ font-size:44px; font-weight:800; letter-spacing: .5px; }
-  .headerActions{ display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap; }
+  .titleBlock{ display:flex; align-items:baseline; gap:8px; }
+  .yearBig{ font-size:var(--title-bar-font-size); line-height:1.25; font-weight:700; letter-spacing:.03em; }
+  .headerActions{ display:flex; gap:8px; align-items:flex-end; flex-wrap:wrap; }
   .grid{ display:grid; grid-template-columns: 1.05fr 1fr; gap:16px; }
   @media (max-width: 980px){
     .grid{ grid-template-columns: 1fr; }

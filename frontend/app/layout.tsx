@@ -4,8 +4,8 @@ import SideNav from "./SideNav";
 import ClientLayout from "./ClientLayout";
 
 export const metadata = {
-  title: "勤務実績（月間）",
-  description: "勤怠管理アプリ"
+  title: "勤怠管理",
+  description: "勤怠管理アプリ",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

@@ -1,0 +1,47 @@
+[
+  {
+    "testId": "BIT001",
+    "screenName": "支店管理API結合",
+    "testName": "test_branch_search_integration",
+    "nodeid": "backend/tests/test_branch_integration.py::test_branch_search_integration",
+    "input_employee_id": "",
+    "input_email": "",
+    "expected": "開発環境Supabaseで支店を検索できる"
+  },
+  {
+    "testId": "BIT002",
+    "screenName": "支店管理API結合",
+    "testName": "test_branch_create_integration",
+    "nodeid": "backend/tests/test_branch_integration.py::test_branch_create_integration",
+    "input_employee_id": "",
+    "input_email": "",
+    "expected": "開発環境Supabaseへ支店を実DB登録できる"
+  },
+  {
+    "testId": "BIT003",
+    "screenName": "支店管理API結合",
+    "testName": "test_branch_update_integration",
+    "nodeid": "backend/tests/test_branch_integration.py::test_branch_update_integration",
+    "input_employee_id": "",
+    "input_email": "",
+    "expected": "開発環境Supabaseの支店を実DB更新できる"
+  },
+  {
+    "testId": "BIT004",
+    "screenName": "支店管理API結合",
+    "testName": "test_branch_delete_integration",
+    "nodeid": "backend/tests/test_branch_integration.py::test_branch_delete_integration",
+    "input_employee_id": "",
+    "input_email": "",
+    "expected": "開発環境Supabaseの支店をis_active=falseで論理削除できる"
+  },
+  {
+    "testId": "BIT005",
+    "screenName": "支店管理API結合",
+    "testName": "test_branch_manager_create_integration",
+    "nodeid": "backend/tests/test_branch_integration.py::test_branch_manager_create_integration",
+    "input_employee_id": "",
+    "input_email": "",
+    "expected": "支店責任者登録時にmanager_employee_idがbranchesへ保存される"
+  }
+]

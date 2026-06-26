@@ -1,0 +1,56 @@
+[
+  {
+    "testId": "BR001",
+    "screenName": "支店管理API",
+    "testName": "test_search_branches",
+    "nodeid": "backend/tests/test_branch.py::test_search_branches",
+    "input_employee_id": "001",
+    "input_email": "Tokyo Branch",
+    "expected": "支店一覧、支店詳細、次支店コードを取得できる"
+  },
+  {
+    "testId": "BR002",
+    "screenName": "支店管理API",
+    "testName": "test_create_branch",
+    "nodeid": "backend/tests/test_branch.py::test_create_branch",
+    "input_employee_id": "002",
+    "input_email": "Osaka Branch",
+    "expected": "Repositoryをモック化して支店を登録できる"
+  },
+  {
+    "testId": "BR003",
+    "screenName": "支店管理API",
+    "testName": "test_update_branch",
+    "nodeid": "backend/tests/test_branch.py::test_update_branch",
+    "input_employee_id": "001",
+    "input_email": "Tokyo Main Branch",
+    "expected": "Repositoryをモック化して支店を更新できる"
+  },
+  {
+    "testId": "BR004",
+    "screenName": "支店管理API",
+    "testName": "test_delete_branch",
+    "nodeid": "backend/tests/test_branch.py::test_delete_branch",
+    "input_employee_id": "001",
+    "input_email": "Tokyo Branch",
+    "expected": "Repositoryをモック化してis_active=falseの論理削除ができる"
+  },
+  {
+    "testId": "BR009",
+    "screenName": "支店管理API",
+    "testName": "test_search_users",
+    "nodeid": "backend/tests/test_branch.py::test_search_users",
+    "input_employee_id": "0000000001",
+    "input_email": "yamada.taro@example.com",
+    "expected": "社員番号、氏名、メールアドレスの部分一致で社員検索結果を取得できる"
+  },
+  {
+    "testId": "BR010",
+    "screenName": "支店管理API",
+    "testName": "test_create_branch_with_manager_employee_id",
+    "nodeid": "backend/tests/test_branch.py::test_create_branch_with_manager_employee_id",
+    "input_employee_id": "0000000001",
+    "input_email": "Osaka Branch",
+    "expected": "支店登録時にmanager_employee_idが保存される"
+  }
+]

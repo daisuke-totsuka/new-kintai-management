@@ -1,0 +1,11 @@
+[
+  {
+    "testId": "ROLE001",
+    "screenName": "権限管理API",
+    "testName": "test_roles_are_seeded_and_listed",
+    "nodeid": "backend/tests/test_roles.py::test_roles_are_seeded_and_listed",
+    "input_employee_id": "",
+    "input_email": "",
+    "expected": "roles初期データ4件が登録され、一覧取得できる"
+  }
+]

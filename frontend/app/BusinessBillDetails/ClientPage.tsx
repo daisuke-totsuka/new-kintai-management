@@ -382,7 +382,7 @@ const styles: Record<string, React.CSSProperties> = {
   page: {
     background: "#f3f6fb",
     minHeight: "100vh",
-    padding: "24px 0",
+    padding: 0,
   },
   card: {
     background: "#fff",
@@ -396,7 +396,7 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: "center",
     justifyContent: "space-between",
     gap: 12,
-    padding: "6px 4px 14px 4px",
+    padding: 0,
   },
   leftControls: {
     display: "flex",

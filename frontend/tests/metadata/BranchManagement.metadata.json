@@ -1,0 +1,66 @@
+[
+  {
+    "testId": "BR001",
+    "screenName": "支店管理",
+    "testName": "支店一覧を表示できる",
+    "input_name": "",
+    "input_email": "",
+    "expected": "支店管理画面に支店一覧が表示される"
+  },
+  {
+    "testId": "BR002",
+    "screenName": "支店管理",
+    "testName": "支店検索ができる",
+    "input_name": "大阪",
+    "input_email": "",
+    "expected": "検索条件に一致する支店のみ表示される"
+  },
+  {
+    "testId": "BR003",
+    "screenName": "支店管理",
+    "testName": "支店登録ができる",
+    "input_name": "福岡支店",
+    "input_email": "",
+    "expected": "新規支店が一覧に追加される"
+  },
+  {
+    "testId": "BR004",
+    "screenName": "支店管理",
+    "testName": "支店編集ができる",
+    "input_name": "東京本店",
+    "input_email": "",
+    "expected": "既存支店の内容が更新される"
+  },
+  {
+    "testId": "BR005",
+    "screenName": "支店管理",
+    "testName": "支店論理削除ができる",
+    "input_name": "東京支店",
+    "input_email": "",
+    "expected": "支店が削除済として一覧に残る"
+  },
+  {
+    "testId": "BRF007",
+    "screenName": "支店管理",
+    "testName": "社員検索モーダル表示",
+    "input_name": "",
+    "input_email": "",
+    "expected": "支店責任者の検索ボタン押下で社員検索モーダルが表示される"
+  },
+  {
+    "testId": "BRF008",
+    "screenName": "支店管理",
+    "testName": "社員選択",
+    "input_name": "山田",
+    "input_email": "yamada.taro@example.com",
+    "expected": "社員検索結果から社員を選択できる"
+  },
+  {
+    "testId": "BRF009",
+    "screenName": "支店管理",
+    "testName": "支店責任者反映",
+    "input_name": "福岡支店",
+    "input_email": "yamada.taro@example.com",
+    "expected": "選択した社員が支店責任者として支店登録内容に反映される"
+  }
+]

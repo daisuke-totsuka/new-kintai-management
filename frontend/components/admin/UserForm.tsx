@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 
 type Mode = "create" | "edit";
@@ -18,10 +18,15 @@ type FormValue = {
   tempPassword: string; // create時のみ利用（編集では再発行ボタンのみ想定）
 };
 
-const BRANCH_OPTIONS = [
-  { id: "tokyo", name: "東京" },
-  { id: "osaka", name: "大阪" },
-  { id: "nagoya", name: "名古屋" },
+type BranchOption = {
+  branchCode: string;
+  branchName: string;
+};
+
+const FALLBACK_BRANCH_OPTIONS: BranchOption[] = [
+  { branchCode: "001", branchName: "東京" },
+  { branchCode: "002", branchName: "大阪" },
+  { branchCode: "003", branchName: "名古屋" },
 ];
 
 function generateTempPassword(len = 12) {
@@ -53,7 +58,7 @@ export default function UserForm({
       furigana: initialValue?.furigana ?? "",
       email: initialValue?.email ?? "",
       employeeCode: initialValue?.employeeCode ?? "",
-      branchId: initialValue?.branchId ?? BRANCH_OPTIONS[0].id,
+      branchId: initialValue?.branchId ?? FALLBACK_BRANCH_OPTIONS[0].branchCode,
       isAdmin: initialValue?.isAdmin ?? false,
       isAccounting: initialValue?.isAccounting ?? false,
       isActive: initialValue?.isActive ?? true,
@@ -63,8 +68,37 @@ export default function UserForm({
   );
 
   const [v, setV] = useState<FormValue>(init);
+  const [branches, setBranches] = useState<BranchOption[]>(FALLBACK_BRANCH_OPTIONS);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL;
+    if (!apiBaseUrl) return;
+
+    fetch(`${apiBaseUrl}/branches?is_active=true`, {
+      credentials: "include",
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((body) => {
+        if (body?.branches) {
+          const nextBranches = body.branches
+            .map(toBranchOption)
+            .filter((branch: BranchOption) => branch.branchCode);
+          if (nextBranches.length > 0) {
+            setBranches(nextBranches);
+            setV((current) =>
+              current.branchId
+                ? current
+                : { ...current, branchId: nextBranches[0].branchCode },
+            );
+          }
+        }
+      })
+      .catch(() => {
+        setBranches(FALLBACK_BRANCH_OPTIONS);
+      });
+  }, []);
 
   function validate(next: FormValue) {
     const e: Record<string, string> = {};
@@ -109,7 +143,7 @@ export default function UserForm({
 
   return (
     <>
-      <section className="dashboard-card">
+      <section className="dashboard-card dashboard-header-card">
         <div className="dashboard-head page-header">
           <div>
             <h1 className="page-title dashboard-title">
@@ -175,9 +209,9 @@ export default function UserForm({
               value={v.branchId}
               onChange={(e) => setV((p) => ({ ...p, branchId: e.target.value }))}
             >
-              {BRANCH_OPTIONS.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.name}
+              {branches.map((branch) => (
+                <option key={branch.branchCode} value={branch.branchCode}>
+                  {branchOptionLabel(branch)}
                 </option>
               ))}
             </select>
@@ -314,4 +348,17 @@ function Field({
 
 function inputClass(isError: boolean) {
   return `cell-input${isError ? " error" : ""}`;
+}
+
+function toBranchOption(row: Record<string, any>): BranchOption {
+  return {
+    branchCode: String(row.branch_code ?? row.branchCode ?? ""),
+    branchName: String(row.branch_name ?? row.branchName ?? ""),
+  };
+}
+
+function branchOptionLabel(branch: BranchOption) {
+  return branch.branchName
+    ? `${branch.branchCode} ${branch.branchName}`
+    : branch.branchCode;
 }
