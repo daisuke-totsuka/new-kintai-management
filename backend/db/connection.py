@@ -37,3 +37,12 @@ class DBConnection:
         1件検索
         """
         return self.driver.find_one(table, filters)
+
+    def find_all(self, table, filters=None):
+        return self.driver.find_all(table, filters or {})
+
+    def insert(self, table, data):
+        return self.driver.insert(table, data)
+
+    def update(self, table, filters, data):
+        return self.driver.update(table, filters, data)

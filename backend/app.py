@@ -5,6 +5,9 @@ from flask import Flask
 
 # API
 from api.login.login import login_bp
+from api.users.new_user import new_user_bp
+from api.branches.branch import branch_bp
+from api.roles.role import role_bp
 
 # config
 from config.config import FLASK_HOST, FLASK_PORT
@@ -45,6 +48,9 @@ CORS(
 # API登録
 app.register_blueprint(auth_bp, url_prefix="/auth")
 app.register_blueprint(login_bp)
+app.register_blueprint(new_user_bp)
+app.register_blueprint(branch_bp)
+app.register_blueprint(role_bp)
 
 # 起動
 if __name__ == "__main__":

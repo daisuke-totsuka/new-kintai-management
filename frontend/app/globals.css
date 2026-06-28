@@ -13,6 +13,10 @@
   --brand: #1f6feb;
   --brand-dark: #0b4fb3;
   --brand-ink: #e8f1ff;
+  --title-bar-width: 100%;
+  --title-bar-font-size: 20px;
+  --app-header-height: 34px;
+  --app-footer-height: 32px;
 }
 
 * {
@@ -37,7 +41,7 @@ textarea {
 
 .page {
   min-height: 100vh;
-  padding-bottom: 80px;
+  padding-bottom: 0;
   background: radial-gradient(1200px 600px at 20% -10%, #f8efe2 0%, transparent 60%),
     radial-gradient(900px 500px at 110% 10%, #f2efe8 0%, transparent 60%),
     var(--bg);
@@ -47,32 +51,46 @@ textarea {
 .app-footer {
   background: linear-gradient(180deg, var(--brand) 0%, var(--brand-dark) 100%);
   color: #fff;
-  padding: 10px 20px;
+  position: fixed;
+  left: 0;
+  right: 0;
+  z-index: 30;
+  display: flex;
+  padding: 0 20px;
   padding-left: calc(var(--side-width) + 20px);
 }
 
 .app-header {
+  top: 0;
+  height: var(--app-header-height);
   border-bottom: 1px solid rgba(255, 255, 255, 0.25);
   box-shadow: 0 8px 18px rgba(12, 55, 120, 0.2);
+  align-items: center;
+  gap: 12px;
 }
 
 .app-header-title {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  line-height: 1.2;
+  letter-spacing: 0.04em;
 }
 
 .app-header-sub {
-  font-size: 12px;
+  font-size: 10px;
   color: var(--brand-ink);
-  letter-spacing: 0.2em;
+  line-height: 1;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  margin-top: 1px;
+  margin-top: 0;
 }
 
 .app-footer {
+  bottom: 0;
+  height: var(--app-footer-height);
+  align-items: center;
   border-top: 1px solid rgba(255, 255, 255, 0.2);
-  margin-top: 24px;
+  margin-top: 0;
 }
 
 .app-footer-text {
@@ -191,7 +209,9 @@ textarea {
 
 .app-shell {
   display: flex;
-  min-height: 100vh;
+  min-height: calc(100vh - var(--app-header-height) - var(--app-footer-height));
+  padding-top: var(--app-header-height);
+  padding-bottom: var(--app-footer-height);
   position: relative;
 }
 
@@ -202,9 +222,10 @@ textarea {
   padding: 20px 16px;
   position: fixed;
   z-index: 20;
-  top: 0;
+  top: var(--app-header-height);
+  bottom: var(--app-footer-height);
   left: 0;
-  height: 100vh;
+  height: auto;
   overflow-y: auto;
   font-size: 14px;
 }
@@ -273,19 +294,19 @@ textarea {
 }
 
 .page-content {
-  padding: 24px 0 0;
+  padding: 0;
 }
 
 .sticky-bar {
   position: sticky;
-  top: 0;
+  top: var(--app-header-height);
   z-index: 10;
   background: linear-gradient(180deg, var(--brand) 0%, var(--brand-dark) 100%);
   border-bottom: 1px solid rgba(255, 255, 255, 0.25);
-  padding: 16px 20px;
+  padding: 0;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   flex-wrap: wrap;
   box-shadow: 0 8px 18px rgba(12, 55, 120, 0.2);
   color: #fff;
@@ -293,9 +314,10 @@ textarea {
 
 .page-title {
   margin: 0;
-  font-size: 22px;
+  font-size: var(--title-bar-font-size);
   font-weight: 700;
-  letter-spacing: 0.04em;
+  line-height: 1.25;
+  letter-spacing: 0.03em;
   color: var(--ink);
 }
 
@@ -307,14 +329,16 @@ textarea {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 8px;
+  width: var(--title-bar-width);
+  min-width: 0;
 }
 
 
 .controls {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
@@ -396,6 +420,52 @@ textarea {
   border-bottom: none;
 }
 
+.attendance-row-saturday td {
+  background: #e6f4ff;
+  color: #075da8;
+}
+
+.attendance-row-sunday td {
+  background: #ffe8ef;
+  color: #c62828;
+}
+
+.attendance-row-saturday .muted {
+  color: #075da8;
+}
+
+.attendance-row-sunday .muted {
+  color: #c62828;
+}
+
+.attendance-row-saturday .cell-input {
+  background: #f7fcff;
+  border-color: #9fd3ff;
+  color: #075da8;
+}
+
+.attendance-row-saturday .cell-input:disabled {
+  background: #9ca3af;
+  border-color: #6b7280;
+  color: #374151;
+  cursor: not-allowed;
+  opacity: 1;
+}
+
+.attendance-row-sunday .cell-input {
+  background: #fff7fa;
+  border-color: #f4a8bb;
+  color: #c62828;
+}
+
+.attendance-row-sunday .cell-input:disabled {
+  background: #9ca3af;
+  border-color: #6b7280;
+  color: #374151;
+  cursor: not-allowed;
+  opacity: 1;
+}
+
 .cell-input {
   width: 100%;
   padding: 6px 8px;
@@ -437,6 +507,10 @@ textarea {
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
 }
 
+.employee-search-modal {
+  width: min(960px, 100%);
+}
+
 .modal h2 {
   margin: 0 0 12px 0;
   font-size: 18px;
@@ -472,6 +546,32 @@ textarea {
   gap: 8px;
 }
 
+.manager-picker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.manager-picker .cell-input {
+  flex: 1;
+}
+
+.manager-picker .btn {
+  flex: none;
+}
+
+.employee-search-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.employee-search-actions {
+  justify-content: flex-end;
+}
+
+.employee-search-table {
+  min-width: 720px;
+}
+
 .help-item {
   background: #f9f5ef;
   border: 1px solid var(--line);
@@ -488,9 +588,9 @@ textarea {
 .dashboard-wrap {
   max-width: none;
   margin: 0;
-  padding: 24px 0;
+  padding: 0;
   display: grid;
-  gap: 18px;
+  gap: 12px;
 }
 
 .dashboard-card,
@@ -503,12 +603,21 @@ textarea {
 }
 
 .title-card {
-  margin-bottom: 16px;
+  padding: 0;
+  margin-bottom: 0;
+  width: var(--title-bar-width);
+  min-width: 0;
+}
+
+.dashboard-header-card {
+  padding: 0;
+  width: var(--title-bar-width);
+  min-width: 0;
 }
 
 .title-card.is-sticky {
   position: sticky;
-  top: 0;
+  top: var(--app-header-height);
   z-index: 10;
 }
 
@@ -521,16 +630,16 @@ textarea {
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 8px;
 }
 
 .dashboard-title {
-  margin-left: -4px;
+  margin-left: 0;
 }
 
 
 .dashboard-sub {
-  margin-top: 6px;
+  margin-top: 3px;
   font-size: 13px;
   color: var(--muted);
 }
@@ -855,7 +964,7 @@ textarea {
 
 @media (max-width: 640px) {
   .dashboard-wrap {
-    padding: 18px;
+    padding: 0;
   }
 
   .dashboard-summary {
@@ -865,6 +974,15 @@ textarea {
   .dashboard-controls {
     width: 100%;
     justify-content: flex-start;
+  }
+
+  .employee-search-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .manager-picker {
+    align-items: stretch;
+    flex-direction: column;
   }
 }
 
@@ -898,7 +1016,7 @@ textarea {
   }
 
   .sticky-bar {
-    padding: 12px 14px;
+    padding: 0;
   }
 
   .table th,

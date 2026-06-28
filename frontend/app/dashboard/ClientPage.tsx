@@ -160,7 +160,7 @@ export default function ClientPage() {
   return (
     <div className="page dashboard-page">
       <div className="dashboard-wrap">
-        <section className="dashboard-card">
+        <section className="dashboard-card dashboard-header-card">
           <div className="dashboard-head page-header">
             <div>
               <h1 className="page-title dashboard-title">確定画面</h1>

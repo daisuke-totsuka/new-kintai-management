@@ -2,6 +2,7 @@
 import { useMemo, useState } from "react";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { validateNormalWorkTimeDifferences } from "@/lib/attendanceValidation";
 
 type WorkRow = {
   workDate: string;
@@ -15,11 +16,27 @@ type WorkRow = {
 
 type ValidationError = {
   workDate: string;
-  field: "startTime" | "endTime" | "breakMinutes" | "notes" | "workDate";
+  field:
+    | "startTime"
+    | "endTime"
+    | "breakMinutes"
+    | "workType"
+    | "notes"
+    | "workDate";
   message: string;
 };
 
 const WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"];
+const WEEKEND_DISABLED_WORK_TYPES = new Set([
+  "有休",
+  "前休",
+  "後休",
+  "特休",
+  "遅刻",
+  "早退",
+  "遅延",
+  "ｼﾌﾄ",
+]);
 
 function formatDate(date: Date): string {
   const y = date.getFullYear();
@@ -76,6 +93,19 @@ function isFutureDate(iso: string): boolean {
   );
 }
 
+function getDateDay(iso: string): number {
+  return new Date(iso + "T00:00:00").getDay();
+}
+
+function isWeekendDate(iso: string): boolean {
+  const day = getDateDay(iso);
+  return day === 0 || day === 6;
+}
+
+function isWeekendDisabledWorkType(workType: string): boolean {
+  return WEEKEND_DISABLED_WORK_TYPES.has(workType);
+}
+
 // export default function ClientPage({ user }: { user: any }) {
 export default function ClientPage() {
   const router = useRouter();
@@ -119,6 +149,8 @@ export default function ClientPage() {
 
   const totalMinutes = useMemo(() => {
     return rows.reduce((sum, row) => {
+      if (isWeekendDate(row.workDate)) return sum;
+
       const start = parseTimeToMinutes(row.startTime);
       const end = parseTimeToMinutes(row.endTime);
       const breakMin =
@@ -147,6 +179,9 @@ export default function ClientPage() {
   function updateRow(index: number, field: keyof WorkRow, value: string) {
     setRows((prev) => {
       const next = [...prev];
+      if (isWeekendDate(next[index].workDate) && field !== "workType") {
+        return prev;
+      }
       next[index] = { ...next[index], [field]: value };
       return next;
     });
@@ -173,6 +208,32 @@ export default function ClientPage() {
       const hasTimeAny = start !== "" || end !== "" || breakStr !== "";
 
       if (!hasAny) return;
+
+      if (isWeekendDate(row.workDate)) {
+        if (hasTimeAny || notes !== "") {
+          nextErrors.push({
+            workDate: row.workDate,
+            field: hasTimeAny
+              ? start !== ""
+                ? "startTime"
+                : end !== ""
+                  ? "endTime"
+                  : "breakMinutes"
+              : "notes",
+            message: "土日は勤務区分以外入力できません",
+          });
+          return;
+        }
+
+        if (isWeekendDisabledWorkType(workType)) {
+          nextErrors.push({
+            workDate: row.workDate,
+            field: "workType",
+            message: "土日はこの勤務区分を選択できません",
+          });
+        }
+        return;
+      }
 
       if (hasTimeAny && (start === "" || end === "" || breakStr === "")) {
         nextErrors.push({
@@ -267,6 +328,8 @@ export default function ClientPage() {
       }
     });
 
+    nextErrors.push(...validateNormalWorkTimeDifferences(rows));
+
     setErrors(nextErrors);
     setModalMode(mode);
     setShowModal(true);
@@ -282,6 +345,7 @@ export default function ClientPage() {
 
   function setCurrentTime() {
     if (!activeCell) return;
+    if (isWeekendDate(activeCell.workDate)) return;
     const now = new Date();
     const time = `${String(now.getHours()).padStart(2, "0")}:${String(
       now.getMinutes(),
@@ -345,20 +409,35 @@ export default function ClientPage() {
           </thead>
           <tbody>
             {rows.map((row, index) => {
+              const day = getDateDay(row.workDate);
+              const isWeekend = day === 0 || day === 6;
               const startMin = parseTimeToMinutes(row.startTime);
               const endMin = parseTimeToMinutes(row.endTime);
               const breakMin =
                 row.breakMinutes === "" ? null : Number(row.breakMinutes);
               const workMin =
+                !isWeekend &&
                 startMin !== null &&
                 endMin !== null &&
                 breakMin !== null &&
                 !Number.isNaN(breakMin)
                   ? endMin - startMin - breakMin
                   : null;
+              const weekendDisabledTitle = isWeekend
+                ? "土日は勤務区分のみ入力できます"
+                : undefined;
+              const weekendDisabledWorkTypeTitle = isWeekend
+                ? "土日は選択できません"
+                : undefined;
+              const rowClassName =
+                day === 0
+                  ? "attendance-row-sunday"
+                  : day === 6
+                    ? "attendance-row-saturday"
+                    : undefined;
 
               return (
-                <tr key={row.workDate}>
+                <tr key={row.workDate} className={rowClassName}>
                   <td>{row.workDate}</td>
                   <td>{row.dayOfWeek}</td>
                   <td>
@@ -379,8 +458,13 @@ export default function ClientPage() {
                           field: "startTime",
                         })
                       }
-                      placeholder="09:00"
-                      title={errorMap.get(`${row.workDate}:startTime`) || ""}
+                      disabled={isWeekend}
+                      placeholder={isWeekend ? "" : "09:00"}
+                      title={
+                        errorMap.get(`${row.workDate}:startTime`) ||
+                        weekendDisabledTitle ||
+                        ""
+                      }
                     />
                   </td>
                   <td>
@@ -401,8 +485,13 @@ export default function ClientPage() {
                           field: "endTime",
                         })
                       }
-                      placeholder="18:00"
-                      title={errorMap.get(`${row.workDate}:endTime`) || ""}
+                      disabled={isWeekend}
+                      placeholder={isWeekend ? "" : "18:00"}
+                      title={
+                        errorMap.get(`${row.workDate}:endTime`) ||
+                        weekendDisabledTitle ||
+                        ""
+                      }
                     />
                   </td>
                   <td>
@@ -416,32 +505,88 @@ export default function ClientPage() {
                       onChange={(e) =>
                         updateRow(index, "breakMinutes", e.target.value)
                       }
-                      placeholder="60"
-                      title={errorMap.get(`${row.workDate}:breakMinutes`) || ""}
+                      disabled={isWeekend}
+                      placeholder={isWeekend ? "" : "60"}
+                      title={
+                        errorMap.get(`${row.workDate}:breakMinutes`) ||
+                        weekendDisabledTitle ||
+                        ""
+                      }
                     />
                   </td>
                   <td className="muted">{workMin !== null ? workMin : "--"}</td>
                   <td>
                     <select
-                      className="cell-input"
+                      className={`cell-input ${
+                        errorMap.has(`${row.workDate}:workType`) ? "error" : ""
+                      }`}
                       value={row.workType}
                       onChange={(e) =>
                         updateRow(index, "workType", e.target.value)
                       }
+                      title={errorMap.get(`${row.workDate}:workType`) || ""}
                     >
                       <option value=""></option>
                       <option value="休出">休出</option>
-                      <option value="有休">有休</option>
-                      <option value="前休">前休</option>
-                      <option value="後休">後休</option>
-                      <option value="特休">特休</option>
+                      <option
+                        value="有休"
+                        disabled={isWeekend}
+                        title={weekendDisabledWorkTypeTitle}
+                      >
+                        有休
+                      </option>
+                      <option
+                        value="前休"
+                        disabled={isWeekend}
+                        title={weekendDisabledWorkTypeTitle}
+                      >
+                        前休
+                      </option>
+                      <option
+                        value="後休"
+                        disabled={isWeekend}
+                        title={weekendDisabledWorkTypeTitle}
+                      >
+                        後休
+                      </option>
+                      <option
+                        value="特休"
+                        disabled={isWeekend}
+                        title={weekendDisabledWorkTypeTitle}
+                      >
+                        特休
+                      </option>
                       <option value="振休">振休</option>
                       <option value="振予">振予</option>
                       <option value="欠勤">欠勤</option>
-                      <option value="遅刻">遅刻</option>
-                      <option value="早退">早退</option>
-                      <option value="遅延">遅延</option>
-                      <option value="ｼﾌﾄ">ｼﾌﾄ</option>
+                      <option
+                        value="遅刻"
+                        disabled={isWeekend}
+                        title={weekendDisabledWorkTypeTitle}
+                      >
+                        遅刻
+                      </option>
+                      <option
+                        value="早退"
+                        disabled={isWeekend}
+                        title={weekendDisabledWorkTypeTitle}
+                      >
+                        早退
+                      </option>
+                      <option
+                        value="遅延"
+                        disabled={isWeekend}
+                        title={weekendDisabledWorkTypeTitle}
+                      >
+                        遅延
+                      </option>
+                      <option
+                        value="ｼﾌﾄ"
+                        disabled={isWeekend}
+                        title={weekendDisabledWorkTypeTitle}
+                      >
+                        ｼﾌﾄ
+                      </option>
                       <option value="休業">休業</option>
                     </select>
                   </td>
@@ -454,8 +599,13 @@ export default function ClientPage() {
                       onChange={(e) =>
                         updateRow(index, "notes", e.target.value)
                       }
-                      placeholder="備考"
-                      title={errorMap.get(`${row.workDate}:notes`) || ""}
+                      disabled={isWeekend}
+                      placeholder={isWeekend ? "" : "備考"}
+                      title={
+                        errorMap.get(`${row.workDate}:notes`) ||
+                        weekendDisabledTitle ||
+                        ""
+                      }
                     />
                   </td>
                 </tr>

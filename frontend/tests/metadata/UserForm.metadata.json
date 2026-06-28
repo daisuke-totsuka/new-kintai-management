@@ -1,0 +1,26 @@
+[
+  {
+    "testId": "UT001",
+    "screenName": "ユーザ登録",
+    "testName": "氏名とメール未入力でエラーが表示される",
+    "input_name": "",
+    "input_email": "",
+    "expected": "氏名は必須です、メールアドレスは必須です が表示される"
+  },
+  {
+    "testId": "UT002",
+    "screenName": "ユーザ登録",
+    "testName": "不正なメールアドレスでエラーになる",
+    "input_name": "山田太郎",
+    "input_email": "abc",
+    "expected": "メール形式が正しくありません が表示される"
+  },
+  {
+    "testId": "UT003",
+    "screenName": "ユーザ登録",
+    "testName": "正常入力で保存処理が実行される",
+    "input_name": "山田太郎",
+    "input_email": "test@example.com",
+    "expected": "保存処理が実行される"
+  }
+]

@@ -1,0 +1,11 @@
+[
+  {
+    "testId": "API001",
+    "screenName": "ユーザ登録API",
+    "testName": "test_create_new_user_success",
+    "nodeid": "backend/tests/test_new_user.py::test_create_new_user_success",
+    "input_employee_id": "0000000002",
+    "input_email": "test.user@example.com",
+    "expected": "201 Createdでユーザ登録に成功し、password_hashにbcryptハッシュが保存される"
+  }
+]
