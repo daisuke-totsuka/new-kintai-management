@@ -1,0 +1,56 @@
+[
+  {
+    "testId": "SIDENAV_UI001",
+    "type": "Frontend",
+    "screenName": "サイドナビ",
+    "testName": "API取得メニューを表示する",
+    "input": "role_id=ADMIN",
+    "expected": "GET /roles/{role_id}/menus のmenusをSideNavに表示する",
+    "actual": "GET /roles/{role_id}/menus のmenusをSideNavに表示する"
+  },
+  {
+    "testId": "SIDENAV_UI002",
+    "type": "Frontend",
+    "screenName": "サイドナビ",
+    "testName": "menu_categoryごとにUSER、ADMIN、LEADER、ACCOUNTINGの順で表示する",
+    "input": "menu_category=USER,ADMIN,LEADER,ACCOUNTING",
+    "expected": "menu_categoryごとにグループ化し、USER、ADMIN、LEADER、ACCOUNTINGの順で表示する",
+    "actual": "menu_categoryごとにグループ化し、USER、ADMIN、LEADER、ACCOUNTINGの順で表示する"
+  },
+  {
+    "testId": "SIDENAV_UI003",
+    "type": "Frontend",
+    "screenName": "サイドナビ",
+    "testName": "API失敗時に固定メニューを表示しない",
+    "input": "GET /roles/ADMIN/menus=500",
+    "expected": "エラーメッセージを表示し、固定メニューへfallbackしない",
+    "actual": "エラーメッセージを表示し、固定メニューへfallbackしない"
+  },
+  {
+    "testId": "SIDENAV_UI004",
+    "type": "Frontend",
+    "screenName": "サイドナビ",
+    "testName": "カスタムrole_idでもrole_menu_mapsのメニューを表示する",
+    "input": "role_id=STORE_MANAGER",
+    "expected": "ADMIN/ACCOUNTING/ADMIN_ACCOUNTING/USER以外でもAPI取得メニューを表示する",
+    "actual": "ADMIN/ACCOUNTING/ADMIN_ACCOUNTING/USER以外でもAPI取得メニューを表示する"
+  },
+  {
+    "testId": "SIDENAV_UI005",
+    "type": "Frontend",
+    "screenName": "サイドナビ",
+    "testName": "role_idが無い場合はメニューAPIを呼ばず空表示にする",
+    "input": "role_id=null",
+    "expected": "role_idがない場合はメニューAPIを呼ばず、メニューを空表示にする",
+    "actual": "role_idがない場合はメニューAPIを呼ばず、メニューを空表示にする"
+  },
+  {
+    "testId": "SIDENAV_UI006",
+    "type": "Frontend",
+    "screenName": "サイドナビ",
+    "testName": "現在パスに一致するAPIメニューをactive表示にする",
+    "input": "pathname=/admin/roles",
+    "expected": "API取得メニューのmenu_pathが現在パスに一致する場合active表示にする",
+    "actual": "API取得メニューのmenu_pathが現在パスに一致する場合active表示にする"
+  }
+]

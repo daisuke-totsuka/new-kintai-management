@@ -1,0 +1,373 @@
+[
+  {
+    "testId": "ATT_API001",
+    "type": "Backend",
+    "screenName": "勤務実績",
+    "testName": "月次勤怠と勤務区分を取得できる",
+    "nodeid": "backend/tests/test_attendance.py::test_monthly_get_and_work_types",
+    "input": "GET /api/attendance/monthly, GET /api/attendance/work-types",
+    "expected": "月次勤怠、通常勤務時間、勤務区分を取得できる",
+    "actual": "月次勤怠、通常勤務時間、勤務区分を取得できる"
+  },
+  {
+    "testId": "ATT_API002",
+    "type": "Backend",
+    "screenName": "勤務実績",
+    "testName": "勤務区分一覧を取得できる",
+    "nodeid": "backend/tests/test_attendance.py::test_work_types_are_listed",
+    "input": "GET /api/attendance/work-types",
+    "expected": "有効な勤務区分をsort_order順で取得できる",
+    "actual": "有効な勤務区分をsort_order順で取得できる"
+  },
+  {
+    "testId": "ATT_API003",
+    "type": "Backend",
+    "screenName": "勤務実績",
+    "testName": "月次勤怠取得でユーザID未指定を拒否する",
+    "nodeid": "backend/tests/test_attendance.py::test_monthly_get_requires_user_id",
+    "input": "GET /api/attendance/monthly userId未指定",
+    "expected": "userId未指定時は400を返却する",
+    "actual": "userId未指定時は400を返却する"
+  },
+  {
+    "testId": "ATT_API004",
+    "type": "Backend",
+    "screenName": "勤務実績",
+    "testName": "月次勤怠取得で他ユーザ指定を拒否する",
+    "nodeid": "backend/tests/test_attendance.py::test_monthly_get_rejects_other_user",
+    "input": "GET /api/attendance/monthly 他ユーザuserId",
+    "expected": "認証ユーザ以外のuserIdは403を返却する",
+    "actual": "認証ユーザ以外のuserIdは403を返却する"
+  },
+  {
+    "testId": "ATT_API005",
+    "type": "Backend",
+    "screenName": "勤務実績",
+    "testName": "月次勤怠で変更行保存と空行削除ができる",
+    "nodeid": "backend/tests/test_attendance.py::test_save_changed_rows_and_delete",
+    "input": "POST /api/attendance/monthly changedRows",
+    "expected": "変更行を保存でき、空行送信で日次明細を削除できる",
+    "actual": "変更行を保存でき、空行送信で日次明細を削除できる"
+  },
+  {
+    "testId": "ATT_API006",
+    "type": "Backend",
+    "screenName": "勤務実績",
+    "testName": "未登録勤務区分の保存を拒否する",
+    "nodeid": "backend/tests/test_attendance.py::test_save_rejects_unknown_work_type",
+    "input": "POST /api/attendance/monthly workTypeCode=未登録",
+    "expected": "未登録勤務区分はE018のvalidationResultsを返却する",
+    "actual": "未登録勤務区分はE018のvalidationResultsを返却する"
+  },
+  {
+    "testId": "ATT_API007",
+    "type": "Backend",
+    "screenName": "勤務実績",
+    "testName": "無効な勤務区分の保存を拒否する",
+    "nodeid": "backend/tests/test_attendance.py::test_save_rejects_inactive_work_type",
+    "input": "POST /api/attendance/monthly inactive workTypeCode",
+    "expected": "無効な勤務区分はE018のvalidationResultsを返却する",
+    "actual": "無効な勤務区分はE018のvalidationResultsを返却する"
+  },
+  {
+    "testId": "ATT_API008",
+    "type": "Backend",
+    "screenName": "勤務実績",
+    "testName": "範囲外の遅刻早退時間の保存を拒否する",
+    "nodeid": "backend/tests/test_attendance.py::test_save_rejects_late_early_minutes_out_of_range",
+    "input": "POST /api/attendance/monthly lateEarlyMinutes=1000",
+    "expected": "範囲外の遅刻早退時間はE017のvalidationResultsを返却する",
+    "actual": "範囲外の遅刻早退時間はE017のvalidationResultsを返却する"
+  },
+  {
+    "testId": "ATT_API009",
+    "type": "Backend",
+    "screenName": "勤務実績",
+    "testName": "30分単位の遅刻早退時間を保存できる",
+    "nodeid": "backend/tests/test_attendance.py::test_save_accepts_thirty_minute_late_early_minutes",
+    "input": "POST /api/attendance/monthly lateEarlyMinutes=30",
+    "expected": "30分単位の遅刻早退時間を保存できる",
+    "actual": "30分単位の遅刻早退時間を保存できる"
+  },
+  {
+    "testId": "ATT_API010",
+    "type": "Backend",
+    "screenName": "勤務実績",
+    "testName": "排他エラー時に最新行と差分セルを返却する",
+    "nodeid": "backend/tests/test_attendance.py::test_conflict_returns_latest_rows_and_conflict_cells",
+    "input": "POST /api/attendance/monthly stale baseUpdatedAt",
+    "expected": "排他エラー時にlatestRowsとconflictCellsを返却する",
+    "actual": "排他エラー時にlatestRowsとconflictCellsを返却する"
+  },
+  {
+    "testId": "ATT_API011",
+    "type": "Backend",
+    "screenName": "勤務実績",
+    "testName": "不正月の保存でE020を返却する",
+    "nodeid": "backend/tests/test_attendance.py::test_save_invalid_month_returns_e020_validation_result",
+    "input": "POST /api/attendance/monthly targetMonth=13",
+    "expected": "不正月はE020のvalidationResultsを返却する",
+    "actual": "不正月はE020のvalidationResultsを返却する"
+  },
+  {
+    "testId": "ATT_API012",
+    "type": "Backend",
+    "screenName": "勤務実績",
+    "testName": "提出エラーでレスポンス用項目名と更新日時を維持する",
+    "nodeid": "backend/tests/test_attendance.py::test_submit_validation_error_uses_response_field_names_and_keeps_updated_at",
+    "input": "POST /api/attendance/monthly/submit validation error",
+    "expected": "提出エラー時にレスポンス用field名を返しupdatedAtを維持する",
+    "actual": "提出エラー時にレスポンス用field名を返しupdatedAtを維持する"
+  },
+  {
+    "testId": "ATT_API013",
+    "type": "Backend",
+    "screenName": "勤務実績",
+    "testName": "月次検証APIが検証結果を返却する",
+    "nodeid": "backend/tests/test_attendance.py::test_validate_monthly_returns_validation_results",
+    "input": "POST /api/attendance/monthly/validate",
+    "expected": "月次検証APIがvalidationResultsを返却する",
+    "actual": "月次検証APIがvalidationResultsを返却する"
+  },
+  {
+    "testId": "ATT_API014",
+    "type": "Backend",
+    "screenName": "勤務実績",
+    "testName": "提出成功時に深夜集計と状態更新を行う",
+    "nodeid": "backend/tests/test_attendance.py::test_submit_success_calculates_midnight_summary_and_status",
+    "input": "POST /api/attendance/monthly/submit midnight shift",
+    "expected": "深夜時間と集計を算出し、statusをsubmittedへ更新する",
+    "actual": "深夜時間と集計を算出し、statusをsubmittedへ更新する"
+  },
+  {
+    "testId": "ATT_API015",
+    "type": "Backend",
+    "screenName": "勤務実績",
+    "testName": "休日欠勤でE009を返しE012は返却しない",
+    "nodeid": "backend/tests/test_attendance.py::test_submit_returns_e009_and_keeps_e012_unimplemented",
+    "input": "POST /api/attendance/monthly/submit holiday absence",
+    "expected": "休日欠勤はE009を返し、未実装のE012は返却しない",
+    "actual": "休日欠勤はE009を返し、未実装のE012は返却しない"
+  },
+  {
+    "testId": "ATT_SVC001",
+    "type": "Backend",
+    "screenName": "勤務実績",
+    "testName": "振替休日と出勤日上書きをカレンダーへ反映する",
+    "nodeid": "backend/tests/test_attendance.py::test_holiday_service_applies_substitute_holiday_and_workday_override",
+    "input": "祝日=2026-07-05, 振替出勤=2026-07-07",
+    "expected": "振替休日と出勤日上書きを勤怠カレンダーへ反映する",
+    "actual": "振替休日と出勤日上書きを勤怠カレンダーへ反映する"
+  },
+  {
+    "testId": "ATT_API016",
+    "type": "Backend",
+    "screenName": "勤務実績",
+    "testName": "休日一覧を取得できる",
+    "nodeid": "backend/tests/test_attendance.py::test_holidays_are_listed",
+    "input": "GET /api/attendance/holidays",
+    "expected": "対象年月の休日カレンダーを取得できる",
+    "actual": "対象年月の休日カレンダーを取得できる"
+  },
+  {
+    "testId": "ATT_API017",
+    "type": "Backend",
+    "screenName": "勤務実績",
+    "testName": "月次勤怠の解除で状態を下書きへ戻す",
+    "nodeid": "backend/tests/test_attendance.py::test_unlock_returns_validated_or_submitted_to_draft",
+    "input": "POST /api/attendance/monthly/unlock",
+    "expected": "validated/submittedをdraftへ戻し、approvedは409で拒否する",
+    "actual": "validated/submittedをdraftへ戻し、approvedは409で拒否する"
+  },
+  {
+    "testId": "ATT_API018",
+    "type": "Backend",
+    "screenName": "勤務実績",
+    "testName": "通常勤務時間を取得できる",
+    "nodeid": "backend/tests/test_attendance.py::test_normal_work_time_is_returned",
+    "input": "GET /api/attendance/normal-work-time",
+    "expected": "通常勤務時間設定を取得できる",
+    "actual": "通常勤務時間設定を取得できる"
+  },
+  {
+    "testId": "ATT_API019",
+    "type": "Backend",
+    "screenName": "勤務実績",
+    "testName": "通常勤務時間を更新できる",
+    "nodeid": "backend/tests/test_attendance.py::test_normal_work_time_can_be_updated",
+    "input": "PUT /api/attendance/normal-work-time",
+    "expected": "通常勤務時間設定を更新・追加できる",
+    "actual": "通常勤務時間設定を更新・追加できる"
+  },
+  {
+    "testId": "ATT_SVC002",
+    "type": "Backend",
+    "screenName": "勤務実績",
+    "testName": "必須エラーを項目別に返却する",
+    "nodeid": "backend/tests/test_attendance.py::test_validation_service_returns_required_errors_by_field",
+    "input": "未入力行",
+    "expected": "必須エラーを項目別に返却する",
+    "actual": "必須エラーを項目別に返却する"
+  },
+  {
+    "testId": "ATT_SVC003",
+    "type": "Backend",
+    "screenName": "勤務実績",
+    "testName": "退勤時刻が出勤時刻より前の詳細エラーを返却する",
+    "nodeid": "backend/tests/test_attendance.py::test_validation_service_returns_time_order_error",
+    "input": "start=18:00, end=09:00",
+    "expected": "退勤時刻が出勤時刻より前の場合に詳細エラーを返却する",
+    "actual": "退勤時刻が出勤時刻より前の場合に詳細エラーを返却する"
+  },
+  {
+    "testId": "ATT_SVC004",
+    "type": "Backend",
+    "screenName": "勤務実績",
+    "testName": "数値範囲外エラーを返却する",
+    "nodeid": "backend/tests/test_attendance.py::test_validation_service_returns_numeric_range_error",
+    "input": "lateEarlyMinutes=1000",
+    "expected": "範囲外の遅刻早退時間エラーを返却する",
+    "actual": "範囲外の遅刻早退時間エラーを返却する"
+  },
+  {
+    "testId": "ATT_SVC005",
+    "type": "Backend",
+    "screenName": "勤務実績",
+    "testName": "複数行と同一行複数項目のエラーを返却する",
+    "nodeid": "backend/tests/test_attendance.py::test_validation_service_returns_multiple_rows_and_same_row_multiple_errors",
+    "input": "複数行未入力",
+    "expected": "複数行および同一行複数項目のエラーを全件返却する",
+    "actual": "複数行および同一行複数項目のエラーを全件返却する"
+  },
+  {
+    "testId": "ATT_SVC006",
+    "type": "Backend",
+    "screenName": "勤務実績",
+    "testName": "正常入力では検証エラーを返却しない",
+    "nodeid": "backend/tests/test_attendance.py::test_validation_service_returns_no_error_for_valid_input",
+    "input": "正常入力行",
+    "expected": "正常入力ではエラーを返却しない",
+    "actual": "正常入力ではエラーを返却しない"
+  },
+  {
+    "testId": "ATT_SVC007",
+    "type": "Backend",
+    "screenName": "勤務実績",
+    "testName": "仕様化済みエラーコードを検証しE012は返却しない",
+    "nodeid": "backend/tests/test_attendance.py::test_validation_service_covers_documented_codes_except_e012",
+    "input": "E001-E020 validation scenarios",
+    "expected": "仕様化済みエラーコードを検証し、未実装E012を返却しない",
+    "actual": "仕様化済みエラーコードを検証し、未実装E012を返却しない"
+  },
+  {
+    "testId": "ATT_API020",
+    "type": "Backend",
+    "screenName": "勤務実績",
+    "testName": "UUIDユーザIDを保存し監査列に社員IDを使用する",
+    "nodeid": "backend/tests/test_attendance.py::test_save_accepts_uuid_user_id_and_uses_employee_id_for_audit_columns",
+    "input": "POST /api/attendance/monthly userId=UUID, employee_id=U001",
+    "expected": "user_idにUUIDを保存し、created_by/updated_byには20文字以内のemployee_idを保存する",
+    "actual": "user_idにUUIDを保存し、created_by/updated_byには20文字以内のemployee_idを保存する"
+  },
+  {
+    "testId": "ATT_API021",
+    "type": "Backend",
+    "screenName": "勤務実績",
+    "testName": "20文字の操作ユーザIDを保存できる",
+    "nodeid": "backend/tests/test_attendance.py::test_save_accepts_twenty_character_operator_id",
+    "input": "POST /api/attendance/monthly operator_id=20文字",
+    "expected": "20文字のoperator_idをcreated_by/updated_byへ保存できる",
+    "actual": "20文字のoperator_idをcreated_by/updated_byへ保存できる"
+  },
+  {
+    "testId": "ATT_API022",
+    "type": "Backend",
+    "screenName": "勤務実績",
+    "testName": "20文字超過の操作ユーザIDを拒否する",
+    "nodeid": "backend/tests/test_attendance.py::test_save_rejects_operator_id_longer_than_twenty_characters",
+    "input": "POST /api/attendance/monthly operator_id=21文字",
+    "expected": "20文字超過のoperator_idは400で拒否し、月次ヘッダを作成しない",
+    "actual": "20文字超過のoperator_idは400で拒否し、月次ヘッダを作成しない"
+  },
+  {
+    "testId": "ATT_API023",
+    "type": "Backend",
+    "screenName": "勤務実績",
+    "testName": "保存処理例外でメッセージと詳細を返却する",
+    "nodeid": "backend/tests/test_attendance.py::test_save_exception_returns_message_and_detail",
+    "input": "POST /api/attendance/monthly RuntimeError",
+    "expected": "保存処理の例外はmessage/detail形式のHTTP500で返却する",
+    "actual": "保存処理の例外はmessage/detail形式のHTTP500で返却する"
+  },
+  {
+    "testId": "ATT_SVC008",
+    "type": "Backend",
+    "screenName": "勤務実績",
+    "testName": "月次ヘッダ登録値がDB桁数に一致する",
+    "nodeid": "backend/tests/test_attendance.py::test_monthly_header_insert_values_match_column_lengths",
+    "input": "attendance_monthly_headers INSERT値",
+    "expected": "id/status/created_by/updated_byは20文字以内、user_idはUUID長で保持する",
+    "actual": "id/status/created_by/updated_byは20文字以内、user_idはUUID長で保持する"
+  },
+  {
+    "testId": "ATT_SVC009",
+    "type": "Backend",
+    "screenName": "勤務実績",
+    "testName": "月次ヘッダのユーザID定義がUUIDを許容する",
+    "nodeid": "backend/tests/test_attendance.py::test_attendance_monthly_headers_user_id_schema_allows_uuid",
+    "input": "backend/db/schema/005_attendance.sql",
+    "expected": "attendance_monthly_headers.user_idはUUIDを保存できるtext型になっている",
+    "actual": "attendance_monthly_headers.user_idはUUIDを保存できるtext型になっている"
+  }
+,
+  {
+    "testId": "ATT_SVC010",
+    "type": "Backend",
+    "screenName": "DB境界値",
+    "testName": "勤怠日付の最小最大境界値を受理する",
+    "nodeid": "backend/tests/test_attendance.py::test_validation_service_accepts_attendance_day_min_max_boundaries",
+    "input": "attendance_day=1,2,30,31",
+    "expected": "最小値、最小値+1、最大値-1、最大値の日付を受理する。",
+    "actual": "最小値、最小値+1、最大値-1、最大値の日付を受理する。"
+  },
+  {
+    "testId": "ATT_SVC011",
+    "type": "Backend",
+    "screenName": "DB境界値",
+    "testName": "勤怠日付の範囲外境界値を拒否する",
+    "nodeid": "backend/tests/test_attendance.py::test_validation_service_rejects_attendance_day_outside_boundaries",
+    "input": "attendance_day=0,32",
+    "expected": "最小値-1、最大値+1の日付はE002を返却する。",
+    "actual": "最小値-1、最大値+1の日付はE002を返却する。"
+  },
+  {
+    "testId": "ATT_SVC012",
+    "type": "Backend",
+    "screenName": "DB境界値",
+    "testName": "休憩時間のDB境界値を検証する",
+    "nodeid": "backend/tests/test_attendance.py::test_validation_service_checks_break_minutes_db_boundaries",
+    "input": "break_minutes=-1,0,1,60,1.5,text",
+    "expected": "0、1、60を受理し、負数、小数、文字列を拒否する。",
+    "actual": "0、1、60を受理し、負数、小数、文字列を拒否する。"
+  },
+  {
+    "testId": "ATT_SVC013",
+    "type": "Backend",
+    "screenName": "DB境界値",
+    "testName": "遅刻早退時間の数値境界値を検証する",
+    "nodeid": "backend/tests/test_attendance.py::test_validation_service_checks_late_early_minutes_numeric_boundaries",
+    "input": "late_early_minutes=-1,0,1,30,990,999.5,1000,text",
+    "expected": "30分単位の数値境界を検証する。",
+    "actual": "30分単位の数値境界を検証する。"
+  },
+  {
+    "testId": "ATT_SVC014",
+    "type": "Backend",
+    "screenName": "DB境界値",
+    "testName": "勤怠DDLの必須DB境界制約を確認する",
+    "nodeid": "backend/tests/test_attendance.py::test_attendance_schema_declares_required_db_boundary_constraints",
+    "input": "backend/db/schema/005_attendance.sql",
+    "expected": "文字列、数値、時刻、テキスト、日付範囲、休憩時間の制約がDDLに存在する。",
+    "actual": "文字列、数値、時刻、テキスト、日付範囲、休憩時間の制約がDDLに存在する。"
+  }
+]

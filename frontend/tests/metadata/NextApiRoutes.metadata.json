@@ -1,0 +1,29 @@
+[
+  {
+    "testId": "NEXT_API001",
+    "type": "Frontend",
+    "screenName": "Next APIプロキシ",
+    "testName": "ログインプロキシが要求本文を転送しバックエンドステータスとクッキーを維持する",
+    "input": "POST /api/login, backend status=201, Set-Cookie",
+    "expected": "リクエスト本文を転送し、バックエンドステータスとクッキーを維持する。",
+    "actual": "リクエスト本文を転送し、バックエンドステータスとクッキーを維持する。"
+  },
+  {
+    "testId": "NEXT_API002",
+    "type": "Frontend",
+    "screenName": "Next APIプロキシ",
+    "testName": "認証確認プロキシがクッキーを転送し未認証レスポンスを維持する",
+    "input": "GET /api/me, Cookie, backend status=401",
+    "expected": "クッキーを転送し、401のレスポンスとno-storeを維持する。",
+    "actual": "クッキーを転送し、401のレスポンスとno-storeを維持する。"
+  },
+  {
+    "testId": "NEXT_API003",
+    "type": "Frontend",
+    "screenName": "Next APIプロキシ",
+    "testName": "権限メニュープロキシが権限IDをエンコードし未検出レスポンスを維持する",
+    "input": "GET /api/roles/{roleId}/menus, roleId contains space, backend status=404",
+    "expected": "権限IDをURLエンコードし、404のJSONレスポンスとno-storeを維持する。",
+    "actual": "権限IDをURLエンコードし、404のJSONレスポンスとno-storeを維持する。"
+  }
+]

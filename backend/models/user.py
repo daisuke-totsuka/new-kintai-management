@@ -1,4 +1,4 @@
-from services.role_service import resolve_role_code
+from services.role_service import normalize_role_id
 
 
 class User:
@@ -13,7 +13,6 @@ class User:
         password,
         email,
         employee_id=None,
-        role="USER",
         role_id=None,
     ):
 
@@ -22,8 +21,7 @@ class User:
         self.password = password
         self.email = email
         self.employee_id = employee_id
-        self.role_id = resolve_role_code(role_id, role)
-        self.role = self.role_id
+        self.role_id = normalize_role_id(role_id)
 
     @classmethod
     def from_dict(cls, data):
@@ -37,6 +35,5 @@ class User:
             data["password_hash"],
             data["email"],
             data.get("employee_id"),
-            data.get("role", "USER"),
             data.get("role_id") or data.get("roleId")
         )

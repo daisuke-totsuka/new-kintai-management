@@ -1,0 +1,92 @@
+[
+  {
+    "testId": "NWT_UI001",
+    "type": "Frontend",
+    "screenName": "通常勤務時間設定",
+    "testName": "初期表示で通常勤務時間設定を取得して一覧表示する",
+    "input": "GET /api/attendance/normal-work-time",
+    "expected": "通常勤務時間設定を取得し、適用日・時刻・休憩・更新日時を一覧表示する",
+    "actual": "通常勤務時間設定を取得し、適用日・時刻・休憩・更新日時を一覧表示する"
+  },
+  {
+    "testId": "NWT_UI002",
+    "type": "Frontend",
+    "screenName": "通常勤務時間設定",
+    "testName": "API取得結果を適用開始日の昇順で表示する",
+    "input": "effectiveFromDay=16,1",
+    "expected": "API取得結果をeffectiveFromDay昇順で表示する",
+    "actual": "API取得結果をeffectiveFromDay昇順で表示する"
+  },
+  {
+    "testId": "NWT_UI003",
+    "type": "Frontend",
+    "screenName": "通常勤務時間設定",
+    "testName": "行追加で新規行を表示する",
+    "input": "新規追加",
+    "expected": "デフォルト値の新規行を追加表示する",
+    "actual": "デフォルト値の新規行を追加表示する"
+  },
+  {
+    "testId": "NWT_UI004",
+    "type": "Frontend",
+    "screenName": "通常勤務時間設定",
+    "testName": "行編集で入力値を変更できる",
+    "input": "通常出勤時刻=08:30",
+    "expected": "入力欄の値を編集できる",
+    "actual": "入力欄の値を編集できる"
+  },
+  {
+    "testId": "NWT_UI005",
+    "type": "Frontend",
+    "screenName": "通常勤務時間設定",
+    "testName": "保存でPUT payloadをcamelCaseで送信する",
+    "input": "保存",
+    "expected": "id, effectiveFromDay, effectiveToDay, startTime, endTime, breakMinutesをcamelCaseでPUTする",
+    "actual": "id, effectiveFromDay, effectiveToDay, startTime, endTime, breakMinutesをcamelCaseでPUTする"
+  },
+  {
+    "testId": "NWT_UI006",
+    "type": "Frontend",
+    "screenName": "通常勤務時間設定",
+    "testName": "削除確認でDELETE APIを呼び、成功メッセージを表示する",
+    "input": "削除確認OK",
+    "expected": "確認ダイアログ後にDELETE APIを呼び、削除成功メッセージを表示する",
+    "actual": "確認ダイアログ後にDELETE APIを呼び、削除成功メッセージを表示する"
+  },
+  {
+    "testId": "NWT_UI007",
+    "type": "Frontend",
+    "screenName": "通常勤務時間設定",
+    "testName": "入力エラーを詳細表示し、エラー領域へスクロールする",
+    "input": "休憩時間=-1",
+    "expected": "行番号・項目名付きの入力エラーを表示し、エラー領域へスクロールする",
+    "actual": "行番号・項目名付きの入力エラーを表示し、エラー領域へスクロールする"
+  },
+  {
+    "testId": "NWT_UI008",
+    "type": "Frontend",
+    "screenName": "通常勤務時間設定",
+    "testName": "重複エラーを適用期間の詳細エラーとして表示する",
+    "input": "2行目 effectiveFromDay=10",
+    "expected": "期間重複を行番号・適用期間のエラーとして表示する",
+    "actual": "期間重複を行番号・適用期間のエラーとして表示する"
+  },
+  {
+    "testId": "NWT_UI009",
+    "type": "Frontend",
+    "screenName": "通常勤務時間設定",
+    "testName": "保存成功メッセージを表示する",
+    "input": "保存API=200",
+    "expected": "通常勤務時間を保存しました。を表示する",
+    "actual": "通常勤務時間を保存しました。を表示する"
+  },
+  {
+    "testId": "NWT_UI010",
+    "type": "Frontend",
+    "screenName": "通常勤務時間設定",
+    "testName": "Backend重複エラーをエラー一覧へ表示する",
+    "input": "保存API=400 validationResults",
+    "expected": "Backendの重複エラーをエラー一覧に表示する",
+    "actual": "Backendの重複エラーをエラー一覧に表示する"
+  }
+]

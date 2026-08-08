@@ -1,27 +1,30 @@
 create table if not exists roles (
-  role_code text primary key,
+  role_id text primary key,
   role_name text not null,
   description text not null default '',
-  is_system_role boolean not null default true,
-  display_order integer not null default 0,
+  is_active boolean not null default true,
   created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
+  created_by text not null default 'SYSTEM',
+  updated_at timestamptz not null default now(),
+  updated_by text not null default 'SYSTEM'
 );
 
 insert into roles (
-  role_code,
+  role_id,
   role_name,
   description,
-  is_system_role,
-  display_order
+  is_active,
+  created_by,
+  updated_by
 ) values
-  ('ADMIN', '管理者', '管理メニューと一般メニューを利用できます', true, 10),
-  ('ACCOUNTING', '経理', '経理メニューを利用できます', true, 20),
-  ('ADMIN_ACCOUNTING', '管理者兼経理', '管理者と経理の全機能を利用できます', true, 30),
-  ('USER', '一般ユーザ', '一般メニューを利用できます', true, 40)
-on conflict (role_code) do update set
+  ('ADMIN', 'Admin', 'Can use admin and general menus.', true, 'SYSTEM', 'SYSTEM'),
+  ('ACCOUNTING', 'Accounting', 'Can use accounting menus.', true, 'SYSTEM', 'SYSTEM'),
+  ('ADMIN_ACCOUNTING', 'Admin Accounting', 'Can use admin, accounting, and general menus.', true, 'SYSTEM', 'SYSTEM'),
+  ('LEADER', 'Leader', 'Can use leader menus.', true, 'SYSTEM', 'SYSTEM'),
+  ('USER', 'User', 'Can use general menus.', true, 'SYSTEM', 'SYSTEM')
+on conflict (role_id) do update set
   role_name = excluded.role_name,
   description = excluded.description,
-  is_system_role = excluded.is_system_role,
-  display_order = excluded.display_order,
-  updated_at = now();
+  is_active = excluded.is_active,
+  updated_at = now(),
+  updated_by = excluded.updated_by;

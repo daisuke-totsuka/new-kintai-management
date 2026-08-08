@@ -1,0 +1,56 @@
+[
+  {
+    "testId": "REPORT_FE001",
+    "type": "Frontend",
+    "screenName": "Excelレポート",
+    "testName": "正式画面名のメタデータを許可する",
+    "input": "画面名=Excelレポート",
+    "expected": "正式名称として許可される。",
+    "actual": "正式名称として許可される。"
+  },
+  {
+    "testId": "REPORT_FE002",
+    "type": "Frontend",
+    "screenName": "Excelレポート",
+    "testName": "英語画面名のメタデータを拒否する",
+    "input": "画面名=Dashboard",
+    "expected": "正式日本語名称ではないため拒否される。",
+    "actual": "正式日本語名称ではないため拒否される。"
+  },
+  {
+    "testId": "REPORT_FE003",
+    "type": "Frontend",
+    "screenName": "Excelレポート",
+    "testName": "画面名未設定のメタデータを拒否する",
+    "input": "画面名未設定",
+    "expected": "画面名未設定として拒否される。",
+    "actual": "画面名未設定として拒否される。"
+  },
+  {
+    "testId": "REPORT_FE004",
+    "type": "Frontend",
+    "screenName": "Excelレポート",
+    "testName": "テストID重複のメタデータを拒否する",
+    "input": "同一テストIDを2件指定",
+    "expected": "テストID重複として拒否される。",
+    "actual": "テストID重複として拒否される。"
+  },
+  {
+    "testId": "REPORT_FE005",
+    "type": "Frontend",
+    "screenName": "Excelレポート",
+    "testName": "画面名とテスト名重複のメタデータを拒否する",
+    "input": "同一画面名と同一テスト名を2件指定",
+    "expected": "画面名とテスト名の組み合わせ重複として拒否される。",
+    "actual": "画面名とテスト名の組み合わせ重複として拒否される。"
+  },
+  {
+    "testId": "REPORT_FE006",
+    "type": "Frontend",
+    "screenName": "Excelレポート",
+    "testName": "メタデータ不足のテスト結果を拒否する",
+    "input": "実行結果に一致するmetadataなし",
+    "expected": "metadata不足として拒否される。",
+    "actual": "metadata不足として拒否される。"
+  }
+]

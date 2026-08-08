@@ -15,24 +15,6 @@ type EmployeeSearchModalProps = {
   onSelect: (employee: EmployeeSearchResult) => void;
 };
 
-const FALLBACK_EMPLOYEES: EmployeeSearchResult[] = [
-  {
-    employee_id: "0000000001",
-    name: "山田 太郎",
-    email: "yamada.taro@example.com",
-  },
-  {
-    employee_id: "0000000002",
-    name: "佐藤 花子",
-    email: "sato.hanako@example.com",
-  },
-  {
-    employee_id: "0000000003",
-    name: "鈴木 一郎",
-    email: "suzuki.ichiro@example.com",
-  },
-];
-
 export default function EmployeeSearchModal({
   open,
   apiBaseUrl,
@@ -55,30 +37,24 @@ export default function EmployeeSearchModal({
     setSearched(true);
 
     try {
-      if (apiBaseUrl) {
-        const params = new URLSearchParams();
-        if (employeeId.trim()) params.set("employee_id", employeeId.trim());
-        if (name.trim()) params.set("name", name.trim());
-        if (email.trim()) params.set("email", email.trim());
-
-        const response = await fetch(`${apiBaseUrl}/users/search?${params.toString()}`, {
-          credentials: "include",
-        });
-        const body = await response.json();
-        if (!response.ok) {
-          throw new Error(body?.error ?? "社員検索に失敗しました");
-        }
-
-        setEmployees((body.users ?? []).map(toEmployee));
-      } else {
-        setEmployees(
-          FALLBACK_EMPLOYEES.filter((employee) =>
-            matches(employee.employee_id, employeeId) &&
-            matches(employee.name, name) &&
-            matches(employee.email, email),
-          ),
-        );
+      if (!apiBaseUrl) {
+        throw new Error("API URL is not configured");
       }
+
+      const params = new URLSearchParams();
+      if (employeeId.trim()) params.set("employee_id", employeeId.trim());
+      if (name.trim()) params.set("name", name.trim());
+      if (email.trim()) params.set("email", email.trim());
+
+      const response = await fetch(`${apiBaseUrl}/users/search?${params.toString()}`, {
+        credentials: "include",
+      });
+      const body = await response.json();
+      if (!response.ok) {
+        throw new Error(body?.error ?? "社員検索に失敗しました");
+      }
+
+      setEmployees((body.users ?? []).map(toEmployee));
     } catch {
       setEmployees([]);
       setError("社員検索に失敗しました");
@@ -211,13 +187,6 @@ function Field({
       <div className="help-grid">{children}</div>
     </div>
   );
-}
-
-function matches(value: string, keyword: string) {
-  const normalizedKeyword = keyword.trim().toLowerCase();
-  if (!normalizedKeyword) return true;
-
-  return value.toLowerCase().includes(normalizedKeyword);
 }
 
 function toEmployee(row: Record<string, unknown>): EmployeeSearchResult {

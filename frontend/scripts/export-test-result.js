@@ -5,15 +5,51 @@ const resultPath = path.join(__dirname, "..", "test-results", "result.json");
 const metadataDir = path.join(__dirname, "..", "tests", "metadata");
 const outputDir = path.join(__dirname, "..", "test-results");
 
+const APPROVED_SCREEN_NAMES = [
+  "勤務実績",
+  "ユーザ管理",
+  "ユーザ登録",
+  "支店管理",
+  "権限管理",
+  "権限登録",
+  "権限編集",
+  "通常勤務時間設定",
+  "年度設定",
+  "経費請求",
+  "業務請求明細",
+  "提出状況",
+  "確定画面",
+  "ログイン",
+  "サイドナビ",
+  "Next APIプロキシ",
+  "DB境界値",
+  "権限DB境界値",
+  "Excelレポート",
+];
+const APPROVED_SCREEN_NAME_SET = new Set(APPROVED_SCREEN_NAMES);
+const ENGLISH_SCREEN_NAMES = new Set([
+  "Attendance Settings",
+  "Business Bill Details",
+  "Dashboard",
+  "DB Boundary",
+  "Expense Claims",
+  "Leader",
+  "Login",
+  "Next API Proxy",
+  "Role DB Boundary",
+]);
+const WINDOWS_FILE_NAME_INVALID_PATTERN = /[<>:"/\\|?*\u0000-\u001f]/;
+
 const HEADERS = [
   "テストID",
+  "種別",
   "画面名",
   "テスト項目",
-  "入力値(name)",
-  "入力値(email)",
+  "入力値",
   "期待結果",
   "実際結果",
   "判定",
+  "実行日時",
 ];
 
 const CRC_TABLE = Array.from({ length: 256 }, (_, index) => {
@@ -24,67 +60,257 @@ const CRC_TABLE = Array.from({ length: 256 }, (_, index) => {
   return value >>> 0;
 });
 
-const resultJson = JSON.parse(fs.readFileSync(resultPath, "utf8"));
-const metadata = fs
-  .readdirSync(metadataDir)
-  .filter((fileName) => fileName.endsWith(".metadata.json"))
-  .flatMap((fileName) => {
-    const metadataPath = path.join(metadataDir, fileName);
-    const loaded = JSON.parse(fs.readFileSync(metadataPath, "utf8"));
-    return Array.isArray(loaded) ? loaded : [loaded];
-  });
+function loadJson(filePath) {
+  return JSON.parse(fs.readFileSync(filePath, "utf8"));
+}
 
-const rowsByScreen = new Map();
+function loadMetadata() {
+  return fs
+    .readdirSync(metadataDir)
+    .filter((fileName) => fileName.endsWith(".metadata.json"))
+    .flatMap((fileName) => {
+      const loaded = loadJson(path.join(metadataDir, fileName));
+      return (Array.isArray(loaded) ? loaded : [loaded]).map((item) => ({
+        ...item,
+        metadataFile: fileName,
+      }));
+    });
+}
 
-function rowsForScreen(screenName) {
-  if (!rowsByScreen.has(screenName)) {
-    rowsByScreen.set(screenName, [HEADERS]);
+function validateMetadata(metadata) {
+  const missingScreenName = metadata
+    .filter((item) => !item.screenName)
+    .map(formatMetadataItem);
+  const missingTestName = metadata
+    .filter((item) => !item.testName)
+    .map(formatMetadataItem);
+  const missingTestId = metadata
+    .filter((item) => !item.testId)
+    .map(formatMetadataItem);
+  const invalidScreenName = metadata
+    .filter((item) => item.screenName && !isApprovedScreenName(item.screenName))
+    .map(formatInvalidScreenNameItem);
+  const englishOnlyTestName = metadata
+    .filter((item) => item.testName && !containsJapanese(item.testName))
+    .map(formatMetadataItem);
+  const duplicateTestIds = findDuplicates(
+    metadata
+      .filter((item) => item.testId)
+      .map((item) => [item.testId, formatMetadataItem(item)]),
+  );
+  const duplicateScreenAndTestNames = findDuplicates(
+    metadata
+      .filter((item) => item.screenName && item.testName)
+      .map((item) => [`${item.screenName}::${item.testName}`, formatMetadataItem(item)]),
+  );
+  const errors = [];
+
+  if (missingScreenName.length > 0) {
+    errors.push(["screenNameがありません。", ...missingScreenName].join("\n"));
   }
 
-  return rowsByScreen.get(screenName);
-}
+  if (missingTestName.length > 0) {
+    errors.push(["testNameがありません。", ...missingTestName].join("\n"));
+  }
 
-for (const file of resultJson.testResults || []) {
-  for (const test of file.assertionResults || []) {
-    const meta = metadata.find((item) => item.testName === test.title);
-    if (!meta) continue;
+  if (missingTestId.length > 0) {
+    errors.push(["testIdがありません。", ...missingTestId].join("\n"));
+  }
 
-    const passed = test.status === "passed";
-    const expected = meta.expected || "";
+  if (invalidScreenName.length > 0) {
+    errors.push([
+      "metadata screenName は正式日本語名称を設定してください。",
+      ...invalidScreenName,
+    ].join("\n"));
+  }
 
-    rowsForScreen(meta.screenName || "TestResult").push([
-      meta.testId || "",
-      meta.screenName || "",
-      meta.testName || "",
-      meta.input_name || "",
-      meta.input_email || "",
-      expected,
-      passed ? expected : (test.failureMessages || []).join("\n"),
-      passed ? "OK" : "NG",
-    ]);
+  if (englishOnlyTestName.length > 0) {
+    errors.push([
+      "metadata testName は日本語名称を設定してください。",
+      ...englishOnlyTestName,
+    ].join("\n"));
+  }
+
+  if (duplicateTestIds.length > 0) {
+    errors.push(["testIdが重複しています。", ...duplicateTestIds].join("\n"));
+  }
+
+  if (duplicateScreenAndTestNames.length > 0) {
+    errors.push([
+      "screenNameとtestNameの組み合わせが重複しています。",
+      ...duplicateScreenAndTestNames,
+    ].join("\n"));
+  }
+
+  if (errors.length > 0) {
+    throw new Error(errors.join("\n\n"));
   }
 }
 
-if (rowsByScreen.size === 0) {
-  throw new Error("metadataに一致するテスト結果がありません");
+function isApprovedScreenName(screenName) {
+  const value = String(screenName || "");
+  const normalized = value.trim();
+  return (
+    value === normalized &&
+    APPROVED_SCREEN_NAME_SET.has(normalized) &&
+    !isAsciiOnly(normalized) &&
+    !ENGLISH_SCREEN_NAMES.has(normalized)
+  );
 }
 
-fs.mkdirSync(outputDir, { recursive: true });
+function isAsciiOnly(value) {
+  return /^[\x00-\x7f]+$/.test(String(value || ""));
+}
 
-const now = new Date();
-const timestamp =
-  now.getFullYear() +
-  String(now.getMonth() + 1).padStart(2, "0") +
-  String(now.getDate()).padStart(2, "0") +
-  "_" +
-  String(now.getHours()).padStart(2, "0") +
-  String(now.getMinutes()).padStart(2, "0") +
-  String(now.getSeconds()).padStart(2, "0");
+function containsJapanese(value) {
+  return /[\u3040-\u30ff\u3400-\u9fff]/.test(String(value || ""));
+}
 
-for (const [screenName, rows] of rowsByScreen.entries()) {
-  const outputPath = path.join(outputDir, `${screenName}_${timestamp}.xlsx`);
-  writeXlsx(outputPath, rows);
-  console.log(`Excel出力完了: ${outputPath}`);
+function findDuplicates(entries) {
+  const byValue = new Map();
+
+  for (const [value, label] of entries) {
+    if (!byValue.has(value)) {
+      byValue.set(value, []);
+    }
+    byValue.get(value).push(label);
+  }
+
+  return Array.from(byValue.entries())
+    .filter(([, labels]) => labels.length > 1)
+    .flatMap(([value, labels]) => [`${value}`, ...labels]);
+}
+
+function indexMetadata(metadata) {
+  const byTestName = new Map();
+  for (const item of metadata) {
+    if (item.testName) {
+      byTestName.set(item.testName, item);
+    }
+  }
+  return byTestName;
+}
+
+function formatExecutionTime(resultJson) {
+  const startTime = resultJson.startTime;
+  const date = startTime ? new Date(startTime) : new Date();
+  return formatDateTime(date);
+}
+
+function buildRowsByScreen(resultJson, metadata) {
+  const byTestName = indexMetadata(metadata);
+  const executionTime = formatExecutionTime(resultJson);
+  const rowsByScreen = new Map();
+  const matched = new Set();
+  const missingMetadata = [];
+
+  for (const file of resultJson.testResults || []) {
+    for (const test of file.assertionResults || []) {
+      const meta = byTestName.get(test.title);
+      if (!meta) {
+        missingMetadata.push(formatTestItem(file, test));
+        continue;
+      }
+
+      matched.add(meta.testName);
+      const passed = test.status === "passed";
+      const expected = meta.expected || "";
+      const actual = passed
+        ? meta.actual || expected
+        : (test.failureMessages || []).join("\n");
+      const screenName = meta.screenName || "TestResult";
+
+      if (!rowsByScreen.has(screenName)) {
+        rowsByScreen.set(screenName, [HEADERS]);
+      }
+
+      rowsByScreen.get(screenName).push([
+        meta.testId || "",
+        meta.type || "Frontend",
+        screenName,
+        meta.testName || "",
+        meta.input || "",
+        expected,
+        actual,
+        passed ? "OK" : "NG",
+        executionTime,
+      ]);
+    }
+  }
+
+  const unmatched = metadata
+    .filter((item) => item.testName && !matched.has(item.testName))
+    .map(formatMetadataItem);
+  const errors = [];
+
+  if (missingMetadata.length > 0) {
+    errors.push(["metadataがありません。", ...missingMetadata].join("\n"));
+  }
+
+  if (unmatched.length > 0) {
+    errors.push(["metadataに一致するテスト結果がありません。", ...unmatched].join("\n"));
+  }
+
+  if (errors.length > 0) {
+    throw new Error(errors.join("\n\n"));
+  }
+
+  return rowsByScreen;
+}
+
+function main() {
+  const resultJson = loadJson(resultPath);
+  const metadata = loadMetadata();
+  validateMetadata(metadata);
+  const rowsByScreen = buildRowsByScreen(resultJson, metadata);
+
+  if (rowsByScreen.size === 0) {
+    throw new Error("metadataに一致するテスト結果がありません");
+  }
+
+  fs.mkdirSync(outputDir, { recursive: true });
+
+  const timestamp = formatTimestamp(new Date());
+  for (const [screenName, rows] of rowsByScreen.entries()) {
+    const outputPath = buildOutputPath(outputDir, screenName, timestamp);
+    writeXlsx(outputPath, rows);
+    console.log(`Excel出力完了: ${outputPath}`);
+  }
+}
+
+function formatTestItem(file, test) {
+  const fileName = file.name
+    ? path.relative(path.join(__dirname, ".."), file.name).replace(/\\/g, "/")
+    : "(unknown file)";
+  return `${fileName}: ${test.title}`;
+}
+
+function formatMetadataItem(item) {
+  const fileName = item.metadataFile || "(unknown metadata)";
+  return `${fileName}: ${item.testName || item.testId || "(unknown test)"}`;
+}
+
+function formatInvalidScreenNameItem(item) {
+  const screenName = String(item.screenName || "");
+  const reason = ENGLISH_SCREEN_NAMES.has(screenName) || isAsciiOnly(screenName)
+    ? "英語または英数字のみの名称です"
+    : "未承認名称です";
+  return `${formatMetadataItem(item)}: screenName="${screenName}" (${reason})`;
+}
+
+function buildOutputPath(targetDir, screenName, timestamp) {
+  const fileName = `${screenName}_${timestamp}.xlsx`;
+
+  if (!screenName || WINDOWS_FILE_NAME_INVALID_PATTERN.test(fileName)) {
+    throw new Error(`Excelファイル名生成に失敗しました: ${fileName}`);
+  }
+
+  const outputPath = path.join(targetDir, fileName);
+  if (path.basename(outputPath) !== fileName) {
+    throw new Error(`Excelファイル名生成に失敗しました: ${fileName}`);
+  }
+
+  return outputPath;
 }
 
 function writeXlsx(filePath, sheetRows) {
@@ -254,3 +480,36 @@ function crc32(buffer) {
 
   return (crc ^ 0xffffffff) >>> 0;
 }
+
+function formatTimestamp(date) {
+  return (
+    date.getFullYear() +
+    String(date.getMonth() + 1).padStart(2, "0") +
+    String(date.getDate()).padStart(2, "0") +
+    "_" +
+    String(date.getHours()).padStart(2, "0") +
+    String(date.getMinutes()).padStart(2, "0") +
+    String(date.getSeconds()).padStart(2, "0")
+  );
+}
+
+function formatDateTime(date) {
+  return (
+    `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-` +
+    `${String(date.getDate()).padStart(2, "0")} ` +
+    `${String(date.getHours()).padStart(2, "0")}:` +
+    `${String(date.getMinutes()).padStart(2, "0")}:` +
+    `${String(date.getSeconds()).padStart(2, "0")}`
+  );
+}
+
+if (require.main === module) {
+  main();
+}
+
+module.exports = {
+  APPROVED_SCREEN_NAMES,
+  buildOutputPath,
+  buildRowsByScreen,
+  validateMetadata,
+};

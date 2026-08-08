@@ -10,40 +10,52 @@ vi.mock("next/navigation", () => ({
   usePathname: () => navState.pathname,
 }));
 
-const GENERAL_MENU = ["勤務実績", "通常出勤時間設定", "経費請求", "業務請求分明細"];
-const ACCOUNTING_MENU = ["提出状況", "勤務表設定"];
-const ADMIN_MENU = ["ユーザ管理", "支店管理", "権限管理"];
+const apiMenus = [
+  {
+    menu_id: "EXPENSE",
+    menu_name: "経費請求",
+    menu_category: "USER",
+    menu_path: "/ExpenseClaims",
+    is_active: true,
+  },
+  {
+    menu_id: "ATTENDANCE",
+    menu_name: "勤務実績",
+    menu_category: "USER",
+    menu_path: "/attendance",
+    is_active: true,
+  },
+  {
+    menu_id: "USER_MANAGEMENT",
+    menu_name: "ユーザ管理",
+    menu_category: "ADMIN",
+    menu_path: "/admin/users",
+    is_active: true,
+  },
+  {
+    menu_id: "ROLE_MANAGEMENT",
+    menu_name: "権限管理",
+    menu_category: "ADMIN",
+    menu_path: "/admin/roles",
+    is_active: true,
+  },
+  {
+    menu_id: "DASHBOARD",
+    menu_name: "確定画面",
+    menu_category: "ACCOUNTING",
+    menu_path: "/dashboard",
+    is_active: true,
+  },
+  {
+    menu_id: "SUBMISSION_STATUS",
+    menu_name: "提出状況",
+    menu_category: "LEADER",
+    menu_path: "/leader",
+    is_active: true,
+  },
+];
 
-function mockRole(roleId: string) {
-  vi.stubGlobal(
-    "fetch",
-    vi.fn(() =>
-      Promise.resolve({
-        ok: true,
-        json: () =>
-          Promise.resolve({
-            user: {
-              role_id: roleId,
-            },
-          }),
-      }),
-    ),
-  );
-}
-
-async function expectRoleMenus(visible: string[], hidden: string[]) {
-  await waitFor(() => {
-    for (const label of visible) {
-      expect(screen.getByText(label)).toBeTruthy();
-    }
-
-    for (const label of hidden) {
-      expect(screen.queryByText(label)).toBeNull();
-    }
-  });
-}
-
-describe("SideNav role menu matrix", () => {
+describe("サイドナビ権限メニュー", () => {
   beforeEach(() => {
     navState.pathname = "/attendance";
   });
@@ -52,34 +64,118 @@ describe("SideNav role menu matrix", () => {
     vi.unstubAllGlobals();
   });
 
-  it("ADMINは管理メニューを表示し経理メニューを表示しない", async () => {
-    mockRole("ADMIN");
+  it("API取得メニューを表示する", async () => {
+    const fetchMock = mockMenuApi("ADMIN", apiMenus);
+
     render(<SideNav />);
 
-    await expectRoleMenus([...GENERAL_MENU, ...ADMIN_MENU], ACCOUNTING_MENU);
-  });
-
-  it("ACCOUNTINGは一般メニューと経理メニューを表示する", async () => {
-    mockRole("ACCOUNTING");
-    render(<SideNav />);
-
-    await expectRoleMenus([...GENERAL_MENU, ...ACCOUNTING_MENU], ADMIN_MENU);
-  });
-
-  it("ADMIN_ACCOUNTINGは管理メニューと経理メニューを表示する", async () => {
-    mockRole("ADMIN_ACCOUNTING");
-    render(<SideNav />);
-
-    await expectRoleMenus(
-      [...GENERAL_MENU, ...ACCOUNTING_MENU, ...ADMIN_MENU],
-      [],
+    expect(await screen.findByText("勤務実績")).toBeTruthy();
+    expect(screen.getByText("ユーザ管理")).toBeTruthy();
+    expect(screen.getByText("権限管理")).toBeTruthy();
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/roles/ADMIN/menus",
+      expect.objectContaining({
+        credentials: "include",
+        cache: "no-store",
+      }),
     );
   });
 
-  it("USERは一般メニューのみ表示する", async () => {
-    mockRole("USER");
+  it("menu_categoryごとにUSER、ADMIN、LEADER、ACCOUNTINGの順で表示する", async () => {
+    renderWithMenus(apiMenus);
+
+    const nav = await screen.findByRole("navigation", {
+      name: "利用可能メニュー",
+    });
+    const text = nav.textContent ?? "";
+
+    expect(text.indexOf("ユーザ権限")).toBeLessThan(text.indexOf("管理権限"));
+    expect(text.indexOf("管理権限")).toBeLessThan(text.indexOf("リーダー権限"));
+    expect(text.indexOf("リーダー権限")).toBeLessThan(text.indexOf("経理権限"));
+    expect(screen.getByText("勤務実績")).toBeTruthy();
+    expect(screen.getByText("ユーザ管理")).toBeTruthy();
+    expect(screen.getByText("提出状況")).toBeTruthy();
+    expect(screen.getByText("確定画面")).toBeTruthy();
+    expect(screen.getByText("経費請求")).toBeTruthy();
+  });
+
+  it("API失敗時に固定メニューを表示しない", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((input: RequestInfo | URL) => {
+        const url = String(input);
+        if (url === "/api/me") {
+          return jsonResponse({
+            authenticated: true,
+            user: { role_id: "ADMIN" },
+          });
+        }
+        if (url === "/api/roles/ADMIN/menus") {
+          return jsonResponse({ error: "failed" }, 500);
+        }
+        return jsonResponse({ error: "not found" }, 404);
+      }),
+    );
+
     render(<SideNav />);
 
-    await expectRoleMenus(GENERAL_MENU, [...ACCOUNTING_MENU, ...ADMIN_MENU]);
+    expect((await screen.findByRole("alert")).textContent).toBe(
+      "メニュー情報の取得に失敗しました",
+    );
+    await waitFor(() => {
+      expect(screen.queryByText("勤務実績")).toBeNull();
+      expect(screen.queryByText("ユーザ管理")).toBeNull();
+      expect(screen.queryByText("経費請求")).toBeNull();
+    });
+  });
+
+  it("カスタムrole_idでもrole_menu_mapsのメニューを表示する", async () => {
+    mockMenuApi("STORE_MANAGER", [
+      {
+        menu_id: "EXPENSE",
+        menu_name: "経費請求",
+        menu_category: "USER",
+        menu_path: "/ExpenseClaims",
+        is_active: true,
+      },
+    ]);
+
+    render(<SideNav />);
+
+    expect(await screen.findByText("経費請求")).toBeTruthy();
+    expect(screen.getByText("ユーザ権限")).toBeTruthy();
   });
 });
+
+function renderWithMenus(menus: Record<string, unknown>[]) {
+  mockMenuApi("ADMIN", menus);
+  render(<SideNav />);
+}
+
+function mockMenuApi(roleId: string, menus: Record<string, unknown>[]) {
+  const normalizedRoleId = roleId.trim().toUpperCase().replace(/[-\s]/g, "_");
+  const fetchMock = vi.fn((input: RequestInfo | URL) => {
+    const url = String(input);
+    if (url === "/api/me") {
+      return jsonResponse({
+        authenticated: true,
+        user: { role_id: roleId },
+      });
+    }
+    if (url === `/api/roles/${normalizedRoleId}/menus`) {
+      return jsonResponse({ success: true, role_id: normalizedRoleId, menus });
+    }
+    return jsonResponse({ error: "not found" }, 404);
+  });
+
+  vi.stubGlobal("fetch", fetchMock);
+  return fetchMock;
+}
+
+function jsonResponse(body: unknown, status = 200) {
+  return Promise.resolve({
+    ok: status >= 200 && status < 300,
+    status,
+    json: () => Promise.resolve(body),
+  });
+}

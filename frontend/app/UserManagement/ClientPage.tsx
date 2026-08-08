@@ -18,48 +18,6 @@ type UserRow = {
   updatedAt: string;
 };
 
-const DUMMY_USERS: UserRow[] = [
-  {
-    id: "u1",
-    name: "山田 太郎",
-    furigana: "ヤマダ タロウ",
-    email: "yamada@example.com",
-    employeeCode: "A001",
-    branchName: "東京",
-    isAdmin: true,
-    isAccounting: false,
-    isActive: true,
-    createdAt: "2026-02-01",
-    updatedAt: "2026-02-10",
-  },
-  {
-    id: "u2",
-    name: "佐藤 花子",
-    furigana: "サトウ ハナコ",
-    email: "sato@example.com",
-    employeeCode: "A002",
-    branchName: "大阪",
-    isAdmin: false,
-    isAccounting: true,
-    isActive: true,
-    createdAt: "2026-02-03",
-    updatedAt: "2026-02-08",
-  },
-  {
-    id: "u3",
-    name: "鈴木 一郎",
-    furigana: "スズキ イチロウ",
-    email: "suzuki@example.com",
-    employeeCode: "A003",
-    branchName: "名古屋",
-    isAdmin: true,
-    isAccounting: true,
-    isActive: false,
-    createdAt: "2026-01-20",
-    updatedAt: "2026-02-05",
-  },
-];
-
 export default function ClientPage({ user }: { user?: any } = {}) {
   const router = useRouter();
 
@@ -74,14 +32,30 @@ export default function ClientPage({ user }: { user?: any } = {}) {
     });
   }, []);
 
+  const [users, setUsers] = useState<UserRow[]>([]);
   const [q, setQ] = useState("");
   const [onlyActive, setOnlyActive] = useState(false);
   const [onlyAdmin, setOnlyAdmin] = useState(false);
   const [onlyAccounting, setOnlyAccounting] = useState(false);
 
+  useEffect(() => {
+    if (!API_BASE_URL) return;
+
+    fetch(`${API_BASE_URL}/users/search?include_inactive=1`, {
+      credentials: "include",
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((body) => {
+        setUsers((body?.users ?? []).map(toUserRow));
+      })
+      .catch(() => {
+        setUsers([]);
+      });
+  }, [API_BASE_URL]);
+
   const filtered = useMemo(() => {
     const kw = q.trim().toLowerCase();
-    return DUMMY_USERS.filter((u) => {
+    return users.filter((u) => {
       if (onlyActive && !u.isActive) return false;
       if (onlyAdmin && !u.isAdmin) return false;
       if (onlyAccounting && !u.isAccounting) return false;
@@ -91,7 +65,7 @@ export default function ClientPage({ user }: { user?: any } = {}) {
         `${u.name} ${u.furigana} ${u.email} ${u.employeeCode ?? ""} ${u.branchName}`.toLowerCase();
       return hay.includes(kw);
     });
-  }, [q, onlyActive, onlyAdmin, onlyAccounting]);
+  }, [q, onlyActive, onlyAdmin, onlyAccounting, users]);
 
   return (
     <div className="page dashboard-page">
@@ -213,4 +187,22 @@ export default function ClientPage({ user }: { user?: any } = {}) {
       </div>
     </div>
   );
+}
+
+function toUserRow(row: Record<string, any>): UserRow {
+  const employeeCode = String(row.employee_id ?? row.employeeCode ?? "");
+
+  return {
+    id: String(row.id ?? employeeCode),
+    name: String(row.name ?? row.username ?? ""),
+    furigana: String(row.kana_name ?? row.furigana ?? ""),
+    email: String(row.email ?? ""),
+    employeeCode,
+    branchName: String(row.branch_name ?? row.branchName ?? ""),
+    isAdmin: Boolean(row.is_admin ?? row.isAdmin ?? false),
+    isAccounting: Boolean(row.is_accounting ?? row.isAccounting ?? false),
+    isActive: Boolean(row.is_active ?? row.isActive ?? true),
+    createdAt: String(row.created_at ?? row.createdAt ?? "").slice(0, 10),
+    updatedAt: String(row.updated_at ?? row.updatedAt ?? "").slice(0, 10),
+  };
 }

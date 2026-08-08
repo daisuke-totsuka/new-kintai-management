@@ -13,7 +13,7 @@ export async function POST(req: Request) {
   });
 
   const data = await res.json();
-  const response = NextResponse.json(data);
+  const response = NextResponse.json(data, { status: res.status });
 
   const setCookie = res.headers.get("set-cookie");
 

@@ -8,6 +8,7 @@ from api.login.login import login_bp
 from api.users.new_user import new_user_bp
 from api.branches.branch import branch_bp
 from api.roles.role import role_bp
+from api.attendance.attendance import attendance_bp
 
 # config
 from config.config import FLASK_HOST, FLASK_PORT
@@ -51,6 +52,7 @@ app.register_blueprint(login_bp)
 app.register_blueprint(new_user_bp)
 app.register_blueprint(branch_bp)
 app.register_blueprint(role_bp)
+app.register_blueprint(attendance_bp)
 
 # 起動
 if __name__ == "__main__":

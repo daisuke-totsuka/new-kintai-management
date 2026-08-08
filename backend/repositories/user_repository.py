@@ -3,7 +3,7 @@ from db.connection import DBConnection
 
 # Userモデル
 from models.user import User
-from services.role_service import DEFAULT_ROLES, normalize_role_code
+from services.role_service import normalize_role_id
 
 
 class UserRepository:
@@ -34,6 +34,13 @@ class UserRepository:
             data=user
         )
 
+    def find_by_id(self, user_id):
+
+        return self.db.find_one(
+            table="users",
+            filters={"id": user_id}
+        )
+
     def find_by_employee_id(self, employee_id):
 
         return self.db.find_one(
@@ -51,7 +58,7 @@ class UserRepository:
     def search_users(self, employee_id=None, name=None, email=None):
 
         rows = self.db.find_all(table="users")
-        role_names = self._role_names_by_code()
+        role_names = self._role_names_by_id()
         branch_names = self._branch_names_by_code()
 
         employee_id = str(employee_id or "").strip().lower()
@@ -75,24 +82,21 @@ class UserRepository:
             branch_code = _normalize_branch_code(
                 row.get("branch_code") or row.get("branchCode") or ""
             )
-            employment_status = row.get("employment_status") or row.get("employmentStatus")
             is_active = row.get("is_active")
             if is_active is None:
                 is_active = row.get("isActive")
             if is_active is None:
-                is_active = employment_status != "inactive"
+                is_active = True
 
             users.append({
                 "id": row.get("id"),
                 "employee_id": employee_id_value,
                 "name": name_value,
                 "email": email_value,
-                "role": role_id,
                 "role_id": role_id,
                 "role_name": role_names.get(role_id),
                 "branch_code": branch_code,
                 "branch_name": branch_names.get(branch_code),
-                "employment_status": employment_status,
                 "is_active": bool(is_active),
                 "updated_at": row.get("updated_at") or row.get("updatedAt"),
             })
@@ -127,18 +131,15 @@ class UserRepository:
 
         return f"{max_number + 1:010d}"
 
-    def _role_names_by_code(self):
+    def _role_names_by_id(self):
 
-        roles = {
-            role["role_code"]: role["role_name"]
-            for role in DEFAULT_ROLES
-        }
+        roles = {}
 
         for role in self.db.find_all(table="roles"):
-            role_code = role.get("role_code") or role.get("roleCode")
+            role_id = role.get("role_id") or role.get("roleId")
             role_name = role.get("role_name") or role.get("roleName")
-            if role_code and role_name:
-                roles[str(role_code)] = str(role_name)
+            if role_id and role_name:
+                roles[str(role_id)] = str(role_name)
 
         return roles
 
@@ -159,16 +160,14 @@ class UserRepository:
 
 def _resolve_user_role_id(row):
     role_id = _first_non_blank(row.get("role_id"), row.get("roleId"))
-    role = _first_non_blank(row.get("role"))
-    value = role_id if role_id is not None else role
 
-    if value is None:
-        return "USER"
+    if role_id is None:
+        return None
 
     try:
-        return normalize_role_code(value)
+        return normalize_role_id(role_id)
     except ValueError:
-        return str(value).strip().upper().replace("-", "_").replace(" ", "_")
+        return str(role_id).strip().upper().replace("-", "_").replace(" ", "_")
 
 
 def _first_non_blank(*values):

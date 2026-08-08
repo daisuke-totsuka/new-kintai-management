@@ -8,48 +8,6 @@ import EmployeeSearchModal, {
   EmployeeSearchResult,
 } from "@/components/admin/EmployeeSearchModal";
 
-const INITIAL_BRANCHES: BranchRow[] = [
-  {
-    id: "branch-1",
-    branchCode: "B001",
-    branchName: "東京支店",
-    branchNameKana: "トウキョウシテン",
-    postalCode: "100-0001",
-    address: "東京都千代田区千代田1-1",
-    phone: "03-1234-5678",
-    managerEmployeeId: "0000000001",
-    managerName: "山田 太郎",
-    isActive: true,
-    updatedAt: "2026-06-01",
-  },
-  {
-    id: "branch-2",
-    branchCode: "B002",
-    branchName: "大阪支店",
-    branchNameKana: "オオサカシテン",
-    postalCode: "530-0001",
-    address: "大阪府大阪市北区梅田1-1",
-    phone: "06-1234-5678",
-    managerEmployeeId: "0000000002",
-    managerName: "佐藤 花子",
-    isActive: true,
-    updatedAt: "2026-06-02",
-  },
-  {
-    id: "branch-3",
-    branchCode: "B003",
-    branchName: "名古屋支店",
-    branchNameKana: "ナゴヤシテン",
-    postalCode: "450-0002",
-    address: "愛知県名古屋市中村区名駅1-1",
-    phone: "052-123-4567",
-    managerEmployeeId: "0000000003",
-    managerName: "鈴木 一郎",
-    isActive: false,
-    updatedAt: "2026-06-03",
-  },
-];
-
 const EMPTY_FORM: BranchFormValue = {
   branchCode: "",
   branchName: "",
@@ -64,7 +22,7 @@ const EMPTY_FORM: BranchFormValue = {
 
 export default function ClientPage() {
   const router = useRouter();
-  const [branches, setBranches] = useState<BranchRow[]>(INITIAL_BRANCHES);
+  const [branches, setBranches] = useState<BranchRow[]>([]);
   const [query, setQuery] = useState("");
   const [onlyActive, setOnlyActive] = useState(false);
   const [formMode, setFormMode] = useState<"create" | "edit" | null>(null);
@@ -101,6 +59,9 @@ export default function ClientPage() {
         if (body?.branches) {
           setBranches(body.branches.map(toBranchRow));
         }
+      })
+      .catch(() => {
+        setBranches([]);
       });
   }, [API_BASE_URL]);
 

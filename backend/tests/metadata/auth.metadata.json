@@ -1,0 +1,82 @@
+[
+  {
+    "testId": "AUTH001",
+    "type": "Backend",
+    "screenName": "ログイン",
+    "testName": "認証確認でDBの権限IDを返却する",
+    "nodeid": "backend/tests/test_auth_me.py::test_auth_me_uses_db_role_id",
+    "input": "role_id=ADMIN_ACCOUNTING",
+    "expected": "/auth/meでDBのrole_idを返却する",
+    "actual": "/auth/meでDBのrole_idを返却する"
+  },
+  {
+    "testId": "AUTH002",
+    "type": "Backend",
+    "screenName": "ログイン",
+    "testName": "DBに権限IDがない場合はトークンの権限IDを返却する",
+    "nodeid": "backend/tests/test_auth_me.py::test_auth_me_uses_token_role_id_when_db_role_id_is_missing",
+    "input": "role_id=ADMIN",
+    "expected": "DBにrole_idがない場合はトークンのrole_idを返却する",
+    "actual": "DBにrole_idがない場合はトークンのrole_idを返却する"
+  },
+  {
+    "testId": "AUTH003",
+    "type": "Backend",
+    "screenName": "ログイン",
+    "testName": "権限IDがない場合は認証確認でnullを返却する",
+    "nodeid": "backend/tests/test_auth_me.py::test_auth_me_returns_null_when_role_id_is_missing",
+    "input": "",
+    "expected": "role_idがない場合はnullを返却する",
+    "actual": "role_idがない場合はnullを返却する"
+  },
+  {
+    "testId": "AUTH004",
+    "type": "Backend",
+    "screenName": "ログイン",
+    "testName": "ログインレスポンスに権限IDを含める",
+    "nodeid": "backend/tests/test_auth_me.py::test_login_response_includes_role_id",
+    "input": "email=testuser@example.com",
+    "expected": "ログインレスポンスにrole_idを含める",
+    "actual": "ログインレスポンスにrole_idを含める"
+  },
+  {
+    "testId": "AUTH005",
+    "type": "Backend",
+    "screenName": "ログイン",
+    "testName": "ADMINロールのログインレスポンスに権限IDを含める",
+    "nodeid": "backend/tests/test_auth_me.py::test_login_response_includes_role_id_for_test_roles[ADMIN-test.admin@example.com]",
+    "input": "role_id=ADMIN, email=test.admin@example.com",
+    "expected": "ADMINのログインレスポンスにrole_idを含める",
+    "actual": "ADMINのログインレスポンスにrole_idを含める"
+  },
+  {
+    "testId": "AUTH006",
+    "type": "Backend",
+    "screenName": "ログイン",
+    "testName": "ACCOUNTINGロールのログインレスポンスに権限IDを含める",
+    "nodeid": "backend/tests/test_auth_me.py::test_login_response_includes_role_id_for_test_roles[ACCOUNTING-test.accounting@example.com]",
+    "input": "role_id=ACCOUNTING, email=test.accounting@example.com",
+    "expected": "ACCOUNTINGのログインレスポンスにrole_idを含める",
+    "actual": "ACCOUNTINGのログインレスポンスにrole_idを含める"
+  },
+  {
+    "testId": "AUTH007",
+    "type": "Backend",
+    "screenName": "ログイン",
+    "testName": "ADMIN_ACCOUNTINGロールのログインレスポンスに権限IDを含める",
+    "nodeid": "backend/tests/test_auth_me.py::test_login_response_includes_role_id_for_test_roles[ADMIN_ACCOUNTING-test.admin.accounting@example.com]",
+    "input": "role_id=ADMIN_ACCOUNTING, email=test.admin.accounting@example.com",
+    "expected": "ADMIN_ACCOUNTINGのログインレスポンスにrole_idを含める",
+    "actual": "ADMIN_ACCOUNTINGのログインレスポンスにrole_idを含める"
+  },
+  {
+    "testId": "AUTH008",
+    "type": "Backend",
+    "screenName": "ログイン",
+    "testName": "USERロールのログインレスポンスに権限IDを含める",
+    "nodeid": "backend/tests/test_auth_me.py::test_login_response_includes_role_id_for_test_roles[USER-test.user@example.com]",
+    "input": "role_id=USER, email=test.user@example.com",
+    "expected": "USERのログインレスポンスにrole_idを含める",
+    "actual": "USERのログインレスポンスにrole_idを含める"
+  }
+]

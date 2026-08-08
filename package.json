@@ -1,0 +1,8 @@
+{
+  "private": true,
+  "scripts": {
+    "test:report:frontend": "npm --prefix frontend run test:report",
+    "test:report:backend": "node scripts/run-test-report-backend.js",
+    "test:report:all": "node scripts/run-test-report-all.js"
+  }
+}

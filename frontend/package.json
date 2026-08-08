@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "test": "vitest",
-    "test:report": "vitest run --reporter=json --outputFile=test-results/result.json && node scripts/export-test-result.js"
+    "test:report": "node scripts/run-test-report.js"
   },
   "dependencies": {
     "next": "14.2.5",

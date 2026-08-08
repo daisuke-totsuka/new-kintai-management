@@ -1,18 +1,20 @@
 [
   {
     "testId": "UM001",
+    "type": "Frontend",
     "screenName": "ユーザ管理",
     "testName": "role_idを優先し、権限名と支店名を表示する",
-    "input_name": "Api Admin",
-    "input_email": "admin@example.com",
-    "expected": "ADMINは管理者、ACCOUNTINGは経理、USERは一般ユーザとして表示される"
+    "input": "Api Admin, admin@example.com",
+    "expected": "ADMINは管理者、ACCOUNTINGは経理担当、USERは一般ユーザとして表示される",
+    "actual": "ADMINは管理者、ACCOUNTINGは経理担当、USERは一般ユーザとして表示される"
   },
   {
     "testId": "UM002",
+    "type": "Frontend",
     "screenName": "ユーザ管理",
     "testName": "支店プルダウンにbranchesの値を表示し、選択したbranch_codeを保存する",
-    "input_name": "Created User",
-    "input_email": "created@example.com",
-    "expected": "branchesの有効支店がプルダウンに表示され、選択したbranch_codeが保存対象になる"
+    "input": "Created User, created@example.com",
+    "expected": "branchesの有効支店がプルダウンに表示され、選択したbranch_codeが保存対象になる",
+    "actual": "branchesの有効支店がプルダウンに表示され、選択したbranch_codeが保存対象になる"
   }
 ]

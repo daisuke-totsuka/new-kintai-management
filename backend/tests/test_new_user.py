@@ -47,8 +47,8 @@ def test_create_new_user_success(monkeypatch):
             "email": "test.user@example.com",
             "password": "temporary-password",
             "employee_id": "0000000002",
-            "role": "employee",
-            "employment_status": "active",
+            "role_id": "USER",
+            "is_active": True,
             "branch_code": "001",
         },
     )
@@ -62,7 +62,6 @@ def test_create_new_user_success(monkeypatch):
 
     assert len(repo.created) == 1
     created_user = repo.created[0]
-    assert created_user["role"] == "USER"
     assert created_user["role_id"] == "USER"
     assert created_user["branch_code"] == "001"
     assert created_user["created_by"] == "0000000001"

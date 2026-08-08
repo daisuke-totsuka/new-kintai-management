@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import SideNav from "@/app/SideNav";
 
@@ -10,94 +10,74 @@ vi.mock("next/navigation", () => ({
   usePathname: () => navState.pathname,
 }));
 
-function mockCurrentUser(user: Record<string, unknown>) {
-  vi.stubGlobal(
-    "fetch",
-    vi.fn(() =>
-      Promise.resolve({
-        ok: true,
-        json: () =>
-          Promise.resolve({
-            user,
-          }),
-      }),
-    ),
-  );
-}
-
-function mockCurrentRole(role: string) {
-  mockCurrentUser({ role });
-}
-
-describe("SideNav role visibility", () => {
+describe("サイドナビ動的権限メニュー", () => {
   beforeEach(() => {
     navState.pathname = "/admin/roles";
   });
 
-  it("USERには一般メニューのみ表示される", async () => {
-    mockCurrentRole("USER");
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("role_idが無い場合はメニューAPIを呼ばず空表示にする", async () => {
+    const fetchMock = vi.fn((input: RequestInfo | URL) => {
+      if (String(input) === "/api/me") {
+        return jsonResponse({ authenticated: true, user: {} });
+      }
+      return jsonResponse({ error: "not found" }, 404);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
     render(<SideNav />);
 
-    expect(await screen.findByText("勤務実績")).toBeTruthy();
     await waitFor(() => {
-      expect(screen.queryByText("ユーザ管理")).toBeNull();
-      expect(screen.queryByText("勤務表設定")).toBeNull();
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(screen.queryByText("勤務実績")).toBeNull();
+      expect(screen.queryByText("権限管理")).toBeNull();
     });
   });
 
-  it("ADMINには管理メニューが表示され、経理メニューは表示されない", async () => {
-    mockCurrentRole("ADMIN");
+  it("現在パスに一致するAPIメニューをactive表示にする", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((input: RequestInfo | URL) => {
+        const url = String(input);
+        if (url === "/api/me") {
+          return jsonResponse({
+            authenticated: true,
+            user: { role_id: "ADMIN" },
+          });
+        }
+        if (url === "/api/roles/ADMIN/menus") {
+          return jsonResponse({
+            success: true,
+            role_id: "ADMIN",
+            menus: [
+              {
+                menu_id: "ROLE_MANAGEMENT",
+                menu_name: "権限管理",
+                menu_category: "ADMIN",
+                menu_path: "/admin/roles",
+                is_active: true,
+              },
+            ],
+          });
+        }
+        return jsonResponse({ error: "not found" }, 404);
+      }),
+    );
+
     render(<SideNav />);
 
-    expect(await screen.findByText("権限管理")).toBeTruthy();
-    expect(screen.getByText("ユーザ管理")).toBeTruthy();
-    expect(screen.queryByText("勤務表設定")).toBeNull();
-  });
-
-  it("ACCOUNTINGには一般メニューと経理メニューが表示される", async () => {
-    mockCurrentRole("ACCOUNTING");
-    render(<SideNav />);
-
-    expect(await screen.findByText("提出状況")).toBeTruthy();
-    expect(screen.getByText("勤務表設定")).toBeTruthy();
-    expect(screen.getByText("勤務実績")).toBeTruthy();
-    expect(screen.queryByText("ユーザ管理")).toBeNull();
-  });
-
-  it("ADMIN_ACCOUNTINGにはADMINとACCOUNTINGの全機能が表示される", async () => {
-    mockCurrentRole("ADMIN_ACCOUNTING");
-    render(<SideNav />);
-
-    expect(await screen.findByText("権限管理")).toBeTruthy();
-    expect(screen.getByText("勤務表設定")).toBeTruthy();
-    expect(screen.getByText("勤務実績")).toBeTruthy();
-  });
-
-  it("role_idをroleより優先して判定する", async () => {
-    mockCurrentUser({ role_id: "ADMIN_ACCOUNTING", role: "USER" });
-    render(<SideNav />);
-
-    expect(await screen.findByText("権限管理")).toBeTruthy();
-    expect(screen.getByText("支店管理")).toBeTruthy();
-    expect(screen.getByText("勤務表設定")).toBeTruthy();
-    expect(screen.getByText("勤務実績")).toBeTruthy();
-  });
-
-  it("role_id未設定時は既存roleで判定する", async () => {
-    mockCurrentUser({ role: "ADMIN" });
-    render(<SideNav />);
-
-    expect(await screen.findByText("権限管理")).toBeTruthy();
-    expect(screen.getByText("支店管理")).toBeTruthy();
-    expect(screen.queryByText("勤務表設定")).toBeNull();
-  });
-
-  it("role_idもroleも無い場合は暫定でADMIN扱いにする", async () => {
-    mockCurrentUser({});
-    render(<SideNav />);
-
-    expect(await screen.findByText("勤務実績")).toBeTruthy();
-    expect(screen.getByText("支店管理")).toBeTruthy();
-    expect(screen.getByText("権限管理")).toBeTruthy();
+    const roleLink = (await screen.findByText("権限管理")) as HTMLAnchorElement;
+    expect(roleLink.className).toContain("active");
   });
 });
+
+function jsonResponse(body: unknown, status = 200) {
+  return Promise.resolve({
+    ok: status >= 200 && status < 300,
+    status,
+    json: () => Promise.resolve(body),
+  });
+}

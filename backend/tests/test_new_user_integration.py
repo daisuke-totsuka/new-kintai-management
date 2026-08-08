@@ -82,8 +82,8 @@ def test_create_new_user_integration_success(json_metadata):
             "email": email,
             "password": password,
             "employee_id": employee_id,
-            "role": "employee",
-            "employment_status": "active",
+            "role_id": "USER",
+            "is_active": True,
             "branch_code": "001",
         },
     )

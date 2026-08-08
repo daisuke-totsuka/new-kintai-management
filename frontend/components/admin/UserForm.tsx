@@ -23,12 +23,6 @@ type BranchOption = {
   branchName: string;
 };
 
-const FALLBACK_BRANCH_OPTIONS: BranchOption[] = [
-  { branchCode: "001", branchName: "東京" },
-  { branchCode: "002", branchName: "大阪" },
-  { branchCode: "003", branchName: "名古屋" },
-];
-
 function generateTempPassword(len = 12) {
   // 人が読みやすいように記号少なめ
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
@@ -58,7 +52,7 @@ export default function UserForm({
       furigana: initialValue?.furigana ?? "",
       email: initialValue?.email ?? "",
       employeeCode: initialValue?.employeeCode ?? "",
-      branchId: initialValue?.branchId ?? FALLBACK_BRANCH_OPTIONS[0].branchCode,
+      branchId: initialValue?.branchId ?? "",
       isAdmin: initialValue?.isAdmin ?? false,
       isAccounting: initialValue?.isAccounting ?? false,
       isActive: initialValue?.isActive ?? true,
@@ -68,7 +62,7 @@ export default function UserForm({
   );
 
   const [v, setV] = useState<FormValue>(init);
-  const [branches, setBranches] = useState<BranchOption[]>(FALLBACK_BRANCH_OPTIONS);
+  const [branches, setBranches] = useState<BranchOption[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
 
@@ -96,7 +90,7 @@ export default function UserForm({
         }
       })
       .catch(() => {
-        setBranches(FALLBACK_BRANCH_OPTIONS);
+        setBranches([]);
       });
   }, []);
 
@@ -209,6 +203,7 @@ export default function UserForm({
               value={v.branchId}
               onChange={(e) => setV((p) => ({ ...p, branchId: e.target.value }))}
             >
+              <option value="">所属支店を選択してください</option>
               {branches.map((branch) => (
                 <option key={branch.branchCode} value={branch.branchCode}>
                   {branchOptionLabel(branch)}

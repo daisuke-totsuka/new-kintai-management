@@ -6,15 +6,17 @@ import {
 } from "@/lib/normalWorkTimeSettings";
 
 export type AttendanceWorkRowForNormalTimeCheck = {
-  workDate: string;
+  targetYear: number;
+  targetMonth: number;
+  attendanceDay: number;
   startTime: string;
   endTime: string;
   breakMinutes: string;
-  workType: string;
+  workTypeCode: string;
 };
 
 export type NormalWorkTimeDiffError = {
-  workDate: string;
+  attendanceDay: number;
   field: "startTime" | "endTime" | "breakMinutes";
   message: string;
 };
@@ -68,30 +70,30 @@ function settingToNormalWorkTime(setting: TimeSetting): NormalWorkTime | null {
   };
 }
 
-function getDayOfMonth(isoDate: string): number | null {
-  const day = Number(isoDate.slice(8, 10));
+function getDayOfMonth(attendanceDay: number): number | null {
+  const day = Number(attendanceDay);
   return Number.isInteger(day) && day >= 1 && day <= 31 ? day : null;
 }
 
-function isFutureDate(isoDate: string): boolean {
+function isFutureDate(targetYear: number, targetMonth: number, attendanceDay: number): boolean {
   const today = new Date();
-  const date = new Date(`${isoDate}T00:00:00`);
+  const date = new Date(targetYear, targetMonth - 1, attendanceDay);
   return (
     date.getTime() >
     new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime()
   );
 }
 
-function isWeekendDate(isoDate: string): boolean {
-  const day = new Date(`${isoDate}T00:00:00`).getDay();
+function isWeekendDate(targetYear: number, targetMonth: number, attendanceDay: number): boolean {
+  const day = new Date(targetYear, targetMonth - 1, attendanceDay).getDay();
   return day === 0 || day === 6;
 }
 
 function selectNormalWorkTime(
-  workDate: string,
+  attendanceDay: number,
   settings: NormalWorkTimeSettings,
 ): NormalWorkTime | null {
-  const day = getDayOfMonth(workDate);
+  const day = getDayOfMonth(attendanceDay);
   const untilApplyDay = toInteger(settings.until.applyDay);
   const fromApplyDay = toInteger(settings.from.applyDay);
 
@@ -117,8 +119,13 @@ export function validateNormalWorkTimeDifferences(
   const errors: NormalWorkTimeDiffError[] = [];
 
   rows.forEach((row) => {
-    if (isFutureDate(row.workDate) || isWeekendDate(row.workDate)) return;
-    if (row.workType.trim() !== "") return;
+    if (
+      isFutureDate(row.targetYear, row.targetMonth, row.attendanceDay) ||
+      isWeekendDate(row.targetYear, row.targetMonth, row.attendanceDay)
+    ) {
+      return;
+    }
+    if (row.workTypeCode.trim() !== "") return;
 
     const start = row.startTime.trim();
     const end = row.endTime.trim();
@@ -139,12 +146,12 @@ export function validateNormalWorkTimeDifferences(
       return;
     }
 
-    const expected = selectNormalWorkTime(row.workDate, settings);
+    const expected = selectNormalWorkTime(row.attendanceDay, settings);
     if (expected === null) return;
 
     if (actualStart !== expected.startMinutes) {
       errors.push({
-        workDate: row.workDate,
+        attendanceDay: row.attendanceDay,
         field: "startTime",
         message: `通常出勤時間設定の始業時刻(${formatMinutes(
           expected.startMinutes,
@@ -154,7 +161,7 @@ export function validateNormalWorkTimeDifferences(
 
     if (actualEnd !== expected.endMinutes) {
       errors.push({
-        workDate: row.workDate,
+        attendanceDay: row.attendanceDay,
         field: "endTime",
         message: `通常出勤時間設定の終業時刻(${formatMinutes(
           expected.endMinutes,
@@ -164,7 +171,7 @@ export function validateNormalWorkTimeDifferences(
 
     if (actualBreak !== expected.breakMinutes) {
       errors.push({
-        workDate: row.workDate,
+        attendanceDay: row.attendanceDay,
         field: "breakMinutes",
         message: `通常出勤時間設定の休憩時間(${expected.breakMinutes}分)と異なります`,
       });

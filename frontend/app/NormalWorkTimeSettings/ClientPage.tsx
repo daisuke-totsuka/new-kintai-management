@@ -1,606 +1,914 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  cloneNormalWorkTimeSettings,
-  createDefaultNormalWorkTimeSettings,
-  type NormalWorkTimeSettings,
-  type NumericField,
-  type NumericValue,
-  type SettingId,
-} from "@/lib/normalWorkTimeSettings";
 
-const SETTING_META: Record<
-  SettingId,
-  { title: string; applyLabel: string; description: string }
-> = {
-  until: {
-    title: "日まで",
-    applyLabel: "日まで",
-    description: "月初から指定日までの通常勤務時間",
-  },
-  from: {
-    title: "日から",
-    applyLabel: "日から",
-    description: "指定日から月末までの通常勤務時間",
-  },
+type NormalWorkTimeDto = {
+  id?: string | null;
+  userId?: string | null;
+  effectiveFromDay: number;
+  effectiveToDay: number;
+  startTime: string;
+  endTime: string;
+  breakMinutes: number;
+  updatedAt?: string | null;
 };
 
-function toNumberValue(raw: string): NumericValue {
-  if (raw === "") return "";
-  const next = Number(raw);
-  return Number.isFinite(next) ? next : "";
-}
+type NormalWorkTimeResponse = {
+  success: boolean;
+  normalWorkTime: NormalWorkTimeDto[];
+  message?: string;
+  validationResults?: ValidationResult[];
+  errors?: ValidationResult[];
+};
 
-function isIntegerInRange(
-  value: NumericValue,
-  min: number,
-  max: number,
-): value is number {
-  return (
-    typeof value === "number" &&
-    Number.isInteger(value) &&
-    value >= min &&
-    value <= max
-  );
-}
+type DraftSetting = {
+  clientId: string;
+  id: string | null;
+  userId?: string | null;
+  effectiveFromDay: string;
+  effectiveToDay: string;
+  startTime: string;
+  endTime: string;
+  breakMinutes: string;
+  updatedAt?: string | null;
+};
 
-function timeToMinutes(hour: NumericValue, minute: NumericValue) {
-  if (typeof hour !== "number" || typeof minute !== "number") return null;
-  return hour * 60 + minute;
-}
+type EditableField =
+  | "effectiveFromDay"
+  | "effectiveToDay"
+  | "startTime"
+  | "endTime"
+  | "breakMinutes";
 
-function errorKey(settingId: SettingId, field: NumericField | "timeRange") {
-  return `${settingId}.${field}`;
-}
+type ValidationResult = {
+  code?: string;
+  severity?: "error" | "warning";
+  rowNo?: number | null;
+  row_no?: number | null;
+  field?: string | null;
+  message: string;
+};
 
-function validateSettings(settings: NormalWorkTimeSettings) {
-  const nextErrors: Record<string, string> = {};
+type ApiRequestError = Error & {
+  status?: number;
+  body?: unknown;
+  url?: string;
+};
 
-  (Object.keys(settings) as SettingId[]).forEach((settingId) => {
-    const setting = settings[settingId];
+const FIELD_LABELS: Record<string, string> = {
+  effectiveFromDay: "適用開始日",
+  effectiveToDay: "適用終了日",
+  effectivePeriod: "適用期間",
+  startTime: "通常出勤時刻",
+  endTime: "通常退勤時刻",
+  breakMinutes: "休憩時間",
+};
 
-    if (!isIntegerInRange(setting.applyDay, 1, 31)) {
-      nextErrors[errorKey(settingId, "applyDay")] =
-        "適用日は1から31で入力してください";
-    }
+const FIELD_ALIASES: Record<string, string> = {
+  effective_from_day: "effectiveFromDay",
+  effective_to_day: "effectiveToDay",
+  effective_period: "effectivePeriod",
+  start_time: "startTime",
+  end_time: "endTime",
+  break_minutes: "breakMinutes",
+};
 
-    if (!isIntegerInRange(setting.startHour, 0, 23)) {
-      nextErrors[errorKey(settingId, "startHour")] =
-        "始業時は0から23で入力してください";
-    }
+const OVERLAP_MESSAGE = "既存の設定と重複しています。";
+const DELETE_CONFIRM_MESSAGE =
+  "この通常勤務時間設定を削除します。よろしいですか？";
+const SAVE_SUCCESS_MESSAGE = "通常勤務時間を保存しました。";
+const DELETE_SUCCESS_MESSAGE = "通常勤務時間設定を削除しました。";
 
-    if (!isIntegerInRange(setting.startMinute, 0, 59)) {
-      nextErrors[errorKey(settingId, "startMinute")] =
-        "始業分は0から59で入力してください";
-    }
-
-    if (!isIntegerInRange(setting.endHour, 0, 23)) {
-      nextErrors[errorKey(settingId, "endHour")] =
-        "終業時は0から23で入力してください";
-    }
-
-    if (!isIntegerInRange(setting.endMinute, 0, 59)) {
-      nextErrors[errorKey(settingId, "endMinute")] =
-        "終業分は0から59で入力してください";
-    }
-
-    if (!isIntegerInRange(setting.breakMinutes, 0, 1440)) {
-      nextErrors[errorKey(settingId, "breakMinutes")] =
-        "休憩は0から1440分で入力してください";
-    }
-
-    const start = timeToMinutes(setting.startHour, setting.startMinute);
-    const end = timeToMinutes(setting.endHour, setting.endMinute);
-    if (start !== null && end !== null && end <= start) {
-      nextErrors[errorKey(settingId, "timeRange")] =
-        "終業時刻は始業時刻より後にしてください";
-    }
-
-    if (
-      start !== null &&
-      end !== null &&
-      typeof setting.breakMinutes === "number" &&
-      setting.breakMinutes >= end - start
-    ) {
-      nextErrors[errorKey(settingId, "breakMinutes")] =
-        "休憩は勤務時間より短くしてください";
-    }
-  });
-
-  return nextErrors;
-}
+let clientIdSeed = 0;
 
 export default function ClientPage() {
   const router = useRouter();
+  const routerRef = useRef(router);
+  routerRef.current = router;
+  const errorListRef = useRef<HTMLDivElement | null>(null);
+  const pendingErrorScrollRef = useRef(false);
 
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+  const [userId, setUserId] = useState("");
+  const [rows, setRows] = useState<DraftSetting[]>([]);
+  const [validationResults, setValidationResults] = useState<
+    ValidationResult[]
+  >([]);
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [errorScrollRequestId, setErrorScrollRequestId] = useState(0);
+
   useEffect(() => {
-    fetch(`${API_BASE_URL}/auth/me`, {
-      credentials: "include",
-    }).then((res) => {
-      if (!res.ok) {
-        router.push("/");
+    let mounted = true;
+
+    async function init() {
+      try {
+        const me = await requestJson<{
+          authenticated?: boolean;
+          user?: { user_id?: string; userId?: string };
+        }>("/auth/me");
+        const currentUserId = me.user?.user_id ?? me.user?.userId ?? "";
+        if (!currentUserId) {
+          routerRef.current.push("/");
+          return;
+        }
+        if (!mounted) return;
+
+        setUserId(currentUserId);
+        const body = await fetchNormalWorkTime(currentUserId);
+        if (!mounted) return;
+
+        setRows(dtoRowsToDraft(body.normalWorkTime ?? []));
+      } catch (error) {
+        setValidationResults([
+          globalErrorResult(
+            error instanceof Error
+              ? error.message
+              : "通常勤務時間の取得に失敗しました。",
+          ),
+        ]);
+        pendingErrorScrollRef.current = true;
+        setErrorScrollRequestId((current) => current + 1);
+      } finally {
+        if (mounted) setLoading(false);
       }
+    }
+
+    init();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const sortedRows = useMemo(() => sortDraftRows(rows), [rows]);
+  const inputErrors = validationResults.filter(
+    (result) => result.severity !== "warning",
+  );
+
+  useEffect(() => {
+    if (!pendingErrorScrollRef.current || inputErrors.length === 0) return;
+    pendingErrorScrollRef.current = false;
+    errorListRef.current?.scrollIntoView?.({
+      behavior: "smooth",
+      block: "start",
     });
-  }, [API_BASE_URL, router]);
+  }, [errorScrollRequestId, inputErrors.length]);
 
-  const [draft, setDraft] = useState<NormalWorkTimeSettings>(() =>
-    createDefaultNormalWorkTimeSettings(),
-  );
-  const [saved, setSaved] = useState<NormalWorkTimeSettings>(() =>
-    createDefaultNormalWorkTimeSettings(),
-  );
-  const [errors, setErrors] = useState<Record<string, string>>({});
-
-  const dirty = useMemo(
-    () => JSON.stringify(draft) !== JSON.stringify(saved),
-    [draft, saved],
-  );
-
-  function updateNumberField(
-    settingId: SettingId,
-    field: NumericField,
-    raw: string,
+  function updateRow(
+    clientId: string,
+    field: EditableField,
+    value: string,
   ) {
-    const nextValue = toNumberValue(raw);
-    setDraft((prev) => ({
-      ...prev,
-      [settingId]: {
-        ...prev[settingId],
-        [field]: nextValue,
-      },
-    }));
-
-    setErrors((prev) => {
-      if (!prev[errorKey(settingId, field)] && !prev[errorKey(settingId, "timeRange")]) {
-        return prev;
-      }
-      const next = { ...prev };
-      delete next[errorKey(settingId, field)];
-      delete next[errorKey(settingId, "timeRange")];
-      return next;
-    });
+    setRows((current) =>
+      current.map((row) =>
+        row.clientId === clientId ? { ...row, [field]: value } : row,
+      ),
+    );
+    setValidationResults((current) =>
+      current.filter((result) => {
+        const rowNo = resultRowNo(result);
+        if (!rowNo) return true;
+        const target = sortedRows[rowNo - 1];
+        if (!target || target.clientId !== clientId) return true;
+        return result.field !== field && result.field !== "effectivePeriod";
+      }),
+    );
+    setMessage("");
   }
 
-  function onSave() {
-    const nextErrors = validateSettings(draft);
-    setErrors(nextErrors);
-    if (Object.keys(nextErrors).length > 0) return;
-
-    const payload = cloneNormalWorkTimeSettings(draft);
-    console.log("SAVE normal work time settings:", payload);
-    setSaved(payload);
-    alert("保存しました（デモ）");
+  function addRow() {
+    setRows((current) => [...current, createDraftSetting()]);
+    setMessage("");
   }
 
-  function onCancel() {
-    setDraft(cloneNormalWorkTimeSettings(saved));
-    setErrors({});
+  async function saveRows() {
+    if (!userId) return;
+    const errors = validateRows(sortedRows);
+    if (errors.length > 0) {
+      showValidationResults(errors);
+      return;
+    }
+
+    setSaving(true);
+    setMessage("");
+    try {
+      const body = await requestJson<NormalWorkTimeResponse>(
+        "/api/attendance/normal-work-time",
+        {
+          method: "PUT",
+          body: JSON.stringify({
+            userId,
+            normalWorkTime: sortedRows.map(toPayloadRow),
+          }),
+        },
+      );
+      setRows(dtoRowsToDraft(body.normalWorkTime ?? []));
+      setValidationResults([]);
+      setMessage(body.message || SAVE_SUCCESS_MESSAGE);
+    } catch (error) {
+      showValidationResults(apiFailureResults(error));
+    } finally {
+      setSaving(false);
+    }
   }
 
-  function onResetDefault() {
-    setDraft(createDefaultNormalWorkTimeSettings());
-    setErrors({});
+  async function deleteRow(row: DraftSetting) {
+    if (!row.id) {
+      setRows((current) =>
+        current.filter((item) => item.clientId !== row.clientId),
+      );
+      setMessage("");
+      return;
+    }
+
+    if (!window.confirm(DELETE_CONFIRM_MESSAGE)) return;
+
+    setSaving(true);
+    setMessage("");
+    try {
+      const body = await requestJson<NormalWorkTimeResponse>(
+        `/api/attendance/normal-work-time/${encodeURIComponent(row.id)}`,
+        { method: "DELETE" },
+      );
+      setRows(dtoRowsToDraft(body.normalWorkTime ?? []));
+      setValidationResults([]);
+      setMessage(body.message || DELETE_SUCCESS_MESSAGE);
+    } catch (error) {
+      showValidationResults(apiFailureResults(error));
+    } finally {
+      setSaving(false);
+    }
   }
 
-  function getError(settingId: SettingId, field: NumericField | "timeRange") {
-    return errors[errorKey(settingId, field)];
+  function showValidationResults(results: ValidationResult[]) {
+    const normalized = normalizeValidationResults(results);
+    setValidationResults(normalized);
+    setMessage("");
+    if (normalized.some((result) => result.severity !== "warning")) {
+      pendingErrorScrollRef.current = true;
+      setErrorScrollRequestId((current) => current + 1);
+    }
   }
 
-  function renderSettingCard(settingId: SettingId) {
-    const setting = draft[settingId];
-    const meta = SETTING_META[settingId];
-    const rangeError = getError(settingId, "timeRange");
+  function focusValidationTarget(result: ValidationResult) {
+    const rowNo = resultRowNo(result);
+    if (!rowNo || !result.field) return;
+    const row = sortedRows[rowNo - 1];
+    if (!row) return;
+    const targetField =
+      result.field === "effectivePeriod" ? "effectiveFromDay" : result.field;
+    const target = document.getElementById(
+      inputId(row.clientId, targetField),
+    ) as HTMLElement | null;
+    target?.scrollIntoView?.({ behavior: "smooth", block: "center" });
+    target?.focus?.();
+  }
 
+  if (loading) {
     return (
-      <section className="dashboard-card normal-work-card" key={settingId}>
-        <div className="normal-work-card-head">
-          <div>
-            <h2 className="normal-work-card-title">{meta.title}</h2>
-            <div className="dashboard-sub">{meta.description}</div>
-          </div>
-          <span className="normal-work-chip">{meta.applyLabel}</span>
-        </div>
-
-        <div className="normal-work-fields">
-          <label className="normal-work-field">
-            <span className="normal-work-label">適用区分</span>
-            <input
-              className="cell-input"
-              value={setting.applyType === "until" ? "日まで" : "日から"}
-              disabled
-              readOnly
-            />
-          </label>
-
-          <label className="normal-work-field">
-            <span className="normal-work-label">適用日</span>
-            <div className="normal-work-input-unit">
-              <input
-                className={`cell-input ${
-                  getError(settingId, "applyDay") ? "error" : ""
-                }`}
-                type="number"
-                min={1}
-                max={31}
-                value={setting.applyDay}
-                onChange={(e) =>
-                  updateNumberField(settingId, "applyDay", e.target.value)
-                }
-              />
-              <span className="normal-work-unit">日</span>
-            </div>
-            {getError(settingId, "applyDay") && (
-              <div className="normal-work-error">
-                {getError(settingId, "applyDay")}
-              </div>
-            )}
-          </label>
-        </div>
-
-        <div className="normal-work-table-wrap">
-          <table className="table normal-work-table">
-            <thead>
-              <tr>
-                <th>項目</th>
-                <th>時</th>
-                <th>分</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td className="normal-work-row-label">始業時刻</td>
-                <td>
-                  <input
-                    className={`cell-input ${
-                      getError(settingId, "startHour") ? "error" : ""
-                    }`}
-                    type="number"
-                    min={0}
-                    max={23}
-                    value={setting.startHour}
-                    onChange={(e) =>
-                      updateNumberField(settingId, "startHour", e.target.value)
-                    }
-                  />
-                  {getError(settingId, "startHour") && (
-                    <div className="normal-work-error">
-                      {getError(settingId, "startHour")}
-                    </div>
-                  )}
-                </td>
-                <td>
-                  <input
-                    className={`cell-input ${
-                      getError(settingId, "startMinute") ? "error" : ""
-                    }`}
-                    type="number"
-                    min={0}
-                    max={59}
-                    value={setting.startMinute}
-                    onChange={(e) =>
-                      updateNumberField(
-                        settingId,
-                        "startMinute",
-                        e.target.value,
-                      )
-                    }
-                  />
-                  {getError(settingId, "startMinute") && (
-                    <div className="normal-work-error">
-                      {getError(settingId, "startMinute")}
-                    </div>
-                  )}
-                </td>
-              </tr>
-
-              <tr>
-                <td className="normal-work-row-label">終業時刻</td>
-                <td>
-                  <input
-                    className={`cell-input ${
-                      getError(settingId, "endHour") ? "error" : ""
-                    }`}
-                    type="number"
-                    min={0}
-                    max={23}
-                    value={setting.endHour}
-                    onChange={(e) =>
-                      updateNumberField(settingId, "endHour", e.target.value)
-                    }
-                  />
-                  {getError(settingId, "endHour") && (
-                    <div className="normal-work-error">
-                      {getError(settingId, "endHour")}
-                    </div>
-                  )}
-                </td>
-                <td>
-                  <input
-                    className={`cell-input ${
-                      getError(settingId, "endMinute") ? "error" : ""
-                    }`}
-                    type="number"
-                    min={0}
-                    max={59}
-                    value={setting.endMinute}
-                    onChange={(e) =>
-                      updateNumberField(settingId, "endMinute", e.target.value)
-                    }
-                  />
-                  {getError(settingId, "endMinute") && (
-                    <div className="normal-work-error">
-                      {getError(settingId, "endMinute")}
-                    </div>
-                  )}
-                </td>
-              </tr>
-
-              <tr>
-                <td className="normal-work-row-label">休憩</td>
-                <td colSpan={2}>
-                  <div className="normal-work-input-unit">
-                    <input
-                      className={`cell-input normal-work-break-input ${
-                        getError(settingId, "breakMinutes") ? "error" : ""
-                      }`}
-                      type="number"
-                      min={0}
-                      value={setting.breakMinutes}
-                      onChange={(e) =>
-                        updateNumberField(
-                          settingId,
-                          "breakMinutes",
-                          e.target.value,
-                        )
-                      }
-                    />
-                    <span className="normal-work-unit">分</span>
-                  </div>
-                  {getError(settingId, "breakMinutes") && (
-                    <div className="normal-work-error">
-                      {getError(settingId, "breakMinutes")}
-                    </div>
-                  )}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        {rangeError && <div className="normal-work-error">{rangeError}</div>}
-      </section>
+      <div className="page-content">
+        <main className="main">読み込み中...</main>
+      </div>
     );
   }
 
   return (
-    <div className="page dashboard-page normal-work-time-settings">
-      <div className="dashboard-wrap">
-        <section className="dashboard-card dashboard-header-card">
-          <div className="dashboard-head page-header">
-            <div>
-              <h1 className="page-title dashboard-title">通常出勤時間設定</h1>
-              <p className="dashboard-sub">
-                通常勤務の始業・終業・休憩時間を設定します。
-              </p>
-            </div>
-
-            <div className="dashboard-controls">
-              <button type="button" className="btn" onClick={onResetDefault}>
-                初期値に戻す
-              </button>
-              <button
-                type="button"
-                className="btn"
-                onClick={onCancel}
-                disabled={!dirty}
-              >
-                キャンセル
-              </button>
-              <button
-                type="button"
-                className="btn btn-dark"
-                onClick={onSave}
-                disabled={!dirty}
-              >
-                保存
-              </button>
-            </div>
+    <div className="page-content normal-work-page">
+      <div className="title-card page-header is-sticky normal-work-toolbar">
+        <div>
+          <h1 className="page-title">通常勤務時間設定</h1>
+          <div className="normal-work-status">
+            {message || `${sortedRows.length}件`}
           </div>
-        </section>
-
-        <div className="normal-work-grid">
-          {renderSettingCard("until")}
-          {renderSettingCard("from")}
         </div>
+        <div className="controls">
+          <button
+            className="btn"
+            disabled={saving}
+            type="button"
+            onClick={addRow}
+          >
+            新規追加
+          </button>
+          <button
+            className="btn btn-accent"
+            disabled={saving}
+            type="button"
+            onClick={() => void saveRows()}
+          >
+            保存
+          </button>
+        </div>
+      </div>
 
-        <section className="dashboard-card normal-work-actions">
-          <div className="normal-work-save-state">
-            {dirty ? "未保存の変更があります" : "保存済み"}
-          </div>
-          <div className="dashboard-controls">
-            <button
-              type="button"
-              className="btn"
-              onClick={onCancel}
-              disabled={!dirty}
-            >
-              キャンセル
-            </button>
-            <button
-              type="button"
-              className="btn btn-dark"
-              onClick={onSave}
-              disabled={!dirty}
-            >
-              保存
-            </button>
+      <main className="main normal-work-main">
+        {inputErrors.length > 0 && (
+          <section
+            className="normal-work-error-summary"
+            ref={errorListRef}
+            role="alert"
+          >
+            <h2 className="normal-work-section-title">
+              入力エラーがあります（{inputErrors.length}件）
+            </h2>
+            <ul className="error-list normal-work-error-list">
+              {inputErrors.map((result, index) => (
+                <li key={validationKey(result, index)}>
+                  <button
+                    className="normal-work-error-link"
+                    type="button"
+                    onClick={() => focusValidationTarget(result)}
+                  >
+                    {validationLine(result)}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        <section className="normal-work-band">
+          <div className="normal-work-table-wrap">
+            <table className="table normal-work-table">
+              <thead>
+                <tr>
+                  <th>適用開始日</th>
+                  <th>適用終了日</th>
+                  <th>通常出勤時刻</th>
+                  <th>通常退勤時刻</th>
+                  <th>休憩時間（分）</th>
+                  <th>更新日時</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sortedRows.length === 0 ? (
+                  <tr>
+                    <td className="muted center" colSpan={7}>
+                      未登録
+                    </td>
+                  </tr>
+                ) : (
+                  sortedRows.map((row, index) => {
+                    const rowNo = index + 1;
+                    return (
+                      <tr key={row.clientId}>
+                        <td>
+                          <div className="normal-work-input-unit">
+                            <input
+                              aria-label={`${rowNo}行目 適用開始日`}
+                              className={inputClass(rowNo, "effectiveFromDay")}
+                              id={inputId(row.clientId, "effectiveFromDay")}
+                              max={31}
+                              min={1}
+                              type="number"
+                              value={row.effectiveFromDay}
+                              onChange={(event) =>
+                                updateRow(
+                                  row.clientId,
+                                  "effectiveFromDay",
+                                  event.target.value,
+                                )
+                              }
+                            />
+                            <span>日</span>
+                          </div>
+                        </td>
+                        <td>
+                          <div className="normal-work-input-unit">
+                            <input
+                              aria-label={`${rowNo}行目 適用終了日`}
+                              className={inputClass(rowNo, "effectiveToDay")}
+                              id={inputId(row.clientId, "effectiveToDay")}
+                              max={31}
+                              min={1}
+                              type="number"
+                              value={row.effectiveToDay}
+                              onChange={(event) =>
+                                updateRow(
+                                  row.clientId,
+                                  "effectiveToDay",
+                                  event.target.value,
+                                )
+                              }
+                            />
+                            <span>日</span>
+                          </div>
+                        </td>
+                        <td>
+                          <input
+                            aria-label={`${rowNo}行目 通常出勤時刻`}
+                            className={inputClass(rowNo, "startTime")}
+                            id={inputId(row.clientId, "startTime")}
+                            type="time"
+                            value={row.startTime}
+                            onChange={(event) =>
+                              updateRow(
+                                row.clientId,
+                                "startTime",
+                                event.target.value,
+                              )
+                            }
+                          />
+                        </td>
+                        <td>
+                          <input
+                            aria-label={`${rowNo}行目 通常退勤時刻`}
+                            className={inputClass(rowNo, "endTime")}
+                            id={inputId(row.clientId, "endTime")}
+                            type="time"
+                            value={row.endTime}
+                            onChange={(event) =>
+                              updateRow(
+                                row.clientId,
+                                "endTime",
+                                event.target.value,
+                              )
+                            }
+                          />
+                        </td>
+                        <td>
+                          <input
+                            aria-label={`${rowNo}行目 休憩時間`}
+                            className={inputClass(rowNo, "breakMinutes")}
+                            id={inputId(row.clientId, "breakMinutes")}
+                            min={0}
+                            type="number"
+                            value={row.breakMinutes}
+                            onChange={(event) =>
+                              updateRow(
+                                row.clientId,
+                                "breakMinutes",
+                                event.target.value,
+                              )
+                            }
+                          />
+                        </td>
+                        <td className="normal-work-updated">
+                          {row.updatedAt || "--"}
+                        </td>
+                        <td>
+                          <button
+                            className="btn"
+                            disabled={saving}
+                            type="button"
+                            onClick={() => void deleteRow(row)}
+                          >
+                            削除
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
           </div>
         </section>
-      </div>
+      </main>
 
       <style>{css}</style>
     </div>
   );
+
+  function inputClass(rowNo: number, field: EditableField) {
+    const hasError = validationResults.some((result) => {
+      const resultField = result.field ?? "";
+      return (
+        resultRowNo(result) === rowNo &&
+        (resultField === field ||
+          (resultField === "effectivePeriod" &&
+            (field === "effectiveFromDay" || field === "effectiveToDay")))
+      );
+    });
+    return `cell-input${hasError ? " error" : ""}`;
+  }
+}
+
+async function fetchNormalWorkTime(userId: string) {
+  return requestJson<NormalWorkTimeResponse>(
+    `/api/attendance/normal-work-time?userId=${encodeURIComponent(userId)}`,
+  );
+}
+
+async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
+  const url = `${apiBaseUrl()}${path}`;
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      ...init,
+      credentials: "include",
+      cache: "no-store",
+      headers: {
+        "Content-Type": "application/json",
+        ...(init?.headers ?? {}),
+      },
+    });
+  } catch (error) {
+    throw withApiUrl(error, url);
+  }
+
+  const body = await readResponseBody(response);
+  if (!response.ok) {
+    const error = new Error(apiErrorMessage(body, response.status)) as ApiRequestError;
+    error.status = response.status;
+    error.body = body;
+    error.url = url;
+    throw error;
+  }
+  return body as T;
+}
+
+function apiBaseUrl() {
+  return process.env.NEXT_PUBLIC_API_URL ?? "";
+}
+
+async function readResponseBody(response: Response) {
+  if (typeof response.text === "function") {
+    const text = await response.text().catch(() => "");
+    if (!text) return null;
+    try {
+      return JSON.parse(text);
+    } catch {
+      return text;
+    }
+  }
+  return response.json().catch(() => null);
+}
+
+function apiErrorMessage(body: unknown, status: number) {
+  if (body && typeof body === "object") {
+    const error = (body as { error?: unknown; message?: unknown }).error;
+    if (typeof error === "string" && error) return error;
+    const message = (body as { message?: unknown }).message;
+    if (typeof message === "string" && message) return message;
+  }
+  return `API request failed (HTTP ${status})`;
+}
+
+function withApiUrl(error: unknown, url: string): ApiRequestError {
+  if (error && typeof error === "object") {
+    (error as ApiRequestError).url = url;
+    return error as ApiRequestError;
+  }
+  const wrapped = new Error(String(error ?? "API request failed")) as ApiRequestError;
+  wrapped.url = url;
+  return wrapped;
+}
+
+function dtoRowsToDraft(items: NormalWorkTimeDto[]) {
+  return sortDraftRows(
+    items.map((item) => ({
+      clientId: newClientId(),
+      id: item.id ?? null,
+      userId: item.userId ?? null,
+      effectiveFromDay: String(item.effectiveFromDay ?? ""),
+      effectiveToDay: String(item.effectiveToDay ?? ""),
+      startTime: item.startTime ?? "",
+      endTime: item.endTime ?? "",
+      breakMinutes:
+        item.breakMinutes === null || item.breakMinutes === undefined
+          ? ""
+          : String(item.breakMinutes),
+      updatedAt: item.updatedAt ?? null,
+    })),
+  );
+}
+
+function createDraftSetting(): DraftSetting {
+  return {
+    clientId: newClientId(),
+    id: null,
+    effectiveFromDay: "1",
+    effectiveToDay: "31",
+    startTime: "09:00",
+    endTime: "18:00",
+    breakMinutes: "60",
+    updatedAt: null,
+  };
+}
+
+function newClientId() {
+  clientIdSeed += 1;
+  return `normal-work-${clientIdSeed}`;
+}
+
+function sortDraftRows(rows: DraftSetting[]) {
+  return [...rows].sort((left, right) => {
+    const leftDay = parseIntegerText(left.effectiveFromDay);
+    const rightDay = parseIntegerText(right.effectiveFromDay);
+    return (leftDay ?? 999) - (rightDay ?? 999);
+  });
+}
+
+function validateRows(rows: DraftSetting[]): ValidationResult[] {
+  const errors: ValidationResult[] = [];
+  const validRanges: Array<{ rowNo: number; from: number; to: number }> = [];
+
+  rows.forEach((row, index) => {
+    const rowNo = index + 1;
+    const fromDay = parseIntegerText(row.effectiveFromDay);
+    const toDay = parseIntegerText(row.effectiveToDay);
+    const breakMinutes = parseIntegerText(row.breakMinutes);
+    const startMinutes = timeToMinutes(row.startTime);
+    const endMinutes = timeToMinutes(row.endTime);
+
+    if (row.effectiveFromDay.trim() === "") {
+      errors.push(formatResult(rowNo, "effectiveFromDay", "必須です。"));
+    } else if (fromDay === null || fromDay < 1 || fromDay > 31) {
+      errors.push(formatResult(rowNo, "effectiveFromDay", "1～31で入力してください。"));
+    }
+
+    if (row.effectiveToDay.trim() === "") {
+      errors.push(formatResult(rowNo, "effectiveToDay", "必須です。"));
+    } else if (toDay === null || toDay < 1 || toDay > 31) {
+      errors.push(formatResult(rowNo, "effectiveToDay", "1～31で入力してください。"));
+    }
+
+    if (fromDay !== null && toDay !== null && fromDay > toDay) {
+      errors.push(
+        formatResult(rowNo, "effectivePeriod", "適用開始日は適用終了日以前で入力してください。"),
+      );
+    }
+
+    if (row.startTime.trim() === "") {
+      errors.push(formatResult(rowNo, "startTime", "必須です。"));
+    } else if (startMinutes === null) {
+      errors.push(formatResult(rowNo, "startTime", "HH:mm形式で入力してください。"));
+    }
+
+    if (row.endTime.trim() === "") {
+      errors.push(formatResult(rowNo, "endTime", "必須です。"));
+    } else if (endMinutes === null) {
+      errors.push(formatResult(rowNo, "endTime", "HH:mm形式で入力してください。"));
+    }
+
+    if (startMinutes !== null && endMinutes !== null && startMinutes >= endMinutes) {
+      errors.push(formatResult(rowNo, "endTime", "通常出勤時刻より後にしてください。"));
+    }
+
+    if (row.breakMinutes.trim() === "") {
+      errors.push(formatResult(rowNo, "breakMinutes", "必須です。"));
+    } else if (breakMinutes === null || breakMinutes < 0) {
+      errors.push(formatResult(rowNo, "breakMinutes", "0以上で入力してください。"));
+    }
+
+    if (
+      fromDay !== null &&
+      toDay !== null &&
+      fromDay >= 1 &&
+      fromDay <= 31 &&
+      toDay >= 1 &&
+      toDay <= 31 &&
+      fromDay <= toDay
+    ) {
+      validRanges.push({ rowNo, from: fromDay, to: toDay });
+    }
+  });
+
+  validRanges.forEach((left, leftIndex) => {
+    validRanges.slice(leftIndex + 1).forEach((right) => {
+      if (left.from <= right.to && left.to >= right.from) {
+        errors.push(formatResult(right.rowNo, "effectivePeriod", OVERLAP_MESSAGE));
+      }
+    });
+  });
+
+  return dedupeValidationResults(errors);
+}
+
+function toPayloadRow(row: DraftSetting) {
+  return {
+    ...(row.id ? { id: row.id } : {}),
+    userId: row.userId,
+    effectiveFromDay: Number(row.effectiveFromDay),
+    effectiveToDay: Number(row.effectiveToDay),
+    startTime: row.startTime,
+    endTime: row.endTime,
+    breakMinutes: Number(row.breakMinutes),
+  };
+}
+
+function parseIntegerText(value: string) {
+  const text = value.trim();
+  if (!/^[+-]?\d+$/.test(text)) return null;
+  return Number(text);
+}
+
+function timeToMinutes(value: string) {
+  const text = value.trim();
+  if (!/^\d{2}:\d{2}$/.test(text)) return null;
+  const [hour, minute] = text.split(":").map(Number);
+  if (
+    !Number.isInteger(hour) ||
+    !Number.isInteger(minute) ||
+    hour < 0 ||
+    hour > 23 ||
+    minute < 0 ||
+    minute > 59
+  ) {
+    return null;
+  }
+  return hour * 60 + minute;
+}
+
+function formatResult(rowNo: number, field: string, message: string): ValidationResult {
+  return {
+    code: `NORMAL_WORK_TIME_${field}`,
+    severity: "error",
+    rowNo,
+    field,
+    message,
+  };
+}
+
+function apiFailureResults(error: unknown): ValidationResult[] {
+  const body = (error as ApiRequestError | undefined)?.body;
+  const validationResults = readValidationResults(body);
+  if (validationResults.length > 0) return validationResults;
+
+  const status = (error as ApiRequestError | undefined)?.status;
+  if (status === 401) {
+    return [globalErrorResult("ログインの有効期限が切れました。")];
+  }
+  if (status === 403) {
+    return [globalErrorResult("この操作を実行する権限がありません。")];
+  }
+  if (status === 404) {
+    return [globalErrorResult("対象の通常勤務時間設定が見つかりません。")];
+  }
+  if (status !== undefined && status >= 500) {
+    return [globalErrorResult("サーバーでエラーが発生しました。")];
+  }
+  return [
+    globalErrorResult(
+      error instanceof Error ? error.message : "通常勤務時間の保存に失敗しました。",
+    ),
+  ];
+}
+
+function readValidationResults(body: unknown): ValidationResult[] {
+  if (!body || typeof body !== "object") return [];
+  const source = (body as { validationResults?: unknown; errors?: unknown }).validationResults ??
+    (body as { errors?: unknown }).errors;
+  if (!Array.isArray(source)) return [];
+  return normalizeValidationResults(source as ValidationResult[]);
+}
+
+function normalizeValidationResults(results: ValidationResult[]) {
+  return dedupeValidationResults(
+    results.map((result) => {
+      const field = result.field ? FIELD_ALIASES[result.field] ?? result.field : null;
+      return {
+        ...result,
+        severity: result.severity ?? "error",
+        rowNo: resultRowNo(result),
+        field,
+      };
+    }),
+  );
+}
+
+function dedupeValidationResults(results: ValidationResult[]) {
+  const seen = new Set<string>();
+  const deduped: ValidationResult[] = [];
+  for (const result of results) {
+    const key = [
+      result.severity ?? "error",
+      resultRowNo(result) ?? "",
+      result.field ?? "",
+      result.message,
+    ].join("|");
+    if (seen.has(key)) continue;
+    seen.add(key);
+    deduped.push(result);
+  }
+  return deduped;
+}
+
+function validationLine(result: ValidationResult) {
+  const row = resultRowNo(result) ? `${resultRowNo(result)}行目 ` : "";
+  const field = result.field ? `${FIELD_LABELS[result.field] ?? result.field}：` : "";
+  return `${row}${field}${result.message}`;
+}
+
+function validationKey(result: ValidationResult, index: number) {
+  return `${result.code ?? "validation"}-${resultRowNo(result) ?? "global"}-${result.field ?? "field"}-${index}`;
+}
+
+function resultRowNo(result: ValidationResult) {
+  const rowNo = result.rowNo ?? result.row_no;
+  if (rowNo === null || rowNo === undefined) return null;
+  const value = Number(rowNo);
+  return Number.isInteger(value) && value > 0 ? value : null;
+}
+
+function globalErrorResult(message: string): ValidationResult {
+  return { severity: "error", message };
+}
+
+function inputId(clientId: string, field: string) {
+  return `${clientId}-${field}`;
 }
 
 const css = `
-  .normal-work-time-settings {
-    padding-bottom: 24px;
+  .normal-work-page {
+    min-height: 100vh;
   }
 
-  .normal-work-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
+  .normal-work-toolbar {
+    padding: 10px 12px;
   }
 
-  .normal-work-card {
+  .normal-work-status {
+    margin-top: 3px;
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  .normal-work-main {
     display: grid;
     gap: 14px;
   }
 
-  .normal-work-card-head {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 12px;
-  }
-
-  .normal-work-card-title {
-    margin: 0;
-    color: var(--ink);
-    font-size: 18px;
-    font-weight: 700;
-    line-height: 1.3;
-  }
-
-  .normal-work-chip {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 64px;
-    padding: 6px 10px;
+  .normal-work-band,
+  .normal-work-error-summary {
+    background: var(--panel);
     border: 1px solid var(--line);
-    border-radius: 999px;
-    background: #f3efe8;
-    color: var(--muted);
-    font-size: 12px;
-    font-weight: 700;
-    white-space: nowrap;
+    padding: 12px;
   }
 
-  .normal-work-fields {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
+  .normal-work-error-summary {
+    border-color: #fecaca;
+    background: #fef2f2;
+    scroll-margin-top: calc(var(--app-header-height) + 72px);
   }
 
-  .normal-work-field {
-    display: grid;
-    gap: 6px;
+  .normal-work-section-title {
+    margin: 0 0 10px 0;
+    font-size: 16px;
   }
 
-  .normal-work-label {
-    color: var(--muted);
-    font-size: 13px;
-    font-weight: 700;
+  .normal-work-error-list {
+    max-height: min(42vh, 360px);
+    overflow-y: auto;
+    padding-right: 8px;
   }
 
-  .normal-work-input-unit {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+  .normal-work-error-list li {
+    color: var(--error);
   }
 
-  .normal-work-input-unit .cell-input {
-    min-width: 0;
-  }
-
-  .normal-work-unit {
-    color: var(--muted);
-    font-size: 13px;
-    font-weight: 700;
-    white-space: nowrap;
+  .normal-work-error-link {
+    width: 100%;
+    border: none;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    padding: 0;
+    text-align: left;
   }
 
   .normal-work-table-wrap {
     overflow-x: auto;
     border: 1px solid var(--line);
-    border-radius: 12px;
     background: var(--panel);
   }
 
   .normal-work-table {
-    min-width: 420px;
-    border: 0;
+    min-width: 960px;
+    border: none;
     border-radius: 0;
-    box-shadow: none;
   }
 
   .normal-work-table th,
   .normal-work-table td {
     vertical-align: middle;
+    white-space: nowrap;
   }
 
-  .normal-work-table th {
+  .normal-work-table th:last-child,
+  .normal-work-table td:last-child {
+    width: 96px;
     text-align: center;
   }
 
-  .normal-work-table th:first-child {
-    text-align: left;
-  }
-
-  .normal-work-row-label {
-    width: 36%;
-    font-weight: 700;
-  }
-
-  .normal-work-break-input {
-    max-width: 160px;
-  }
-
-  .normal-work-error {
-    color: var(--error);
-    font-size: 12px;
-    line-height: 1.5;
-  }
-
-  .normal-work-actions {
-    display: flex;
+  .normal-work-input-unit {
+    display: grid;
+    grid-template-columns: minmax(76px, 1fr) auto;
     align-items: center;
-    justify-content: space-between;
-    gap: 12px;
+    gap: 6px;
   }
 
-  .normal-work-save-state {
+  .normal-work-input-unit span,
+  .normal-work-updated {
     color: var(--muted);
     font-size: 13px;
-    font-weight: 700;
   }
 
-  .normal-work-time-settings .cell-input:disabled {
-    background: #f3efe8;
-    color: var(--muted);
-    cursor: not-allowed;
-  }
-
-  @media (max-width: 980px) {
-    .normal-work-grid {
-      grid-template-columns: 1fr;
-    }
-  }
-
-  @media (max-width: 640px) {
-    .normal-work-fields {
-      grid-template-columns: 1fr;
-    }
-
-    .normal-work-actions {
-      align-items: flex-start;
-      flex-direction: column;
-    }
+  .normal-work-table .center {
+    text-align: center;
   }
 `;
