@@ -39,7 +39,8 @@ export default function SideNav() {
       setMenus([]);
 
       try {
-        const meBody = await requestJson("/api/me");
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+        const meBody = await requestJson(`${apiUrl}/auth/me`);
         const roleId = normalizeRoleId(
           meBody?.user?.role_id ?? meBody?.user?.roleId,
         );
@@ -127,7 +128,9 @@ function toMenuItem(row: Record<string, any>): MenuItem {
 }
 
 function isVisibleMenu(menu: MenuItem) {
-  return menu.isActive && Boolean(menu.menuId && menu.menuName && menu.menuPath);
+  return (
+    menu.isActive && Boolean(menu.menuId && menu.menuName && menu.menuPath)
+  );
 }
 
 function groupMenus(menus: MenuItem[]): MenuSection[] {
@@ -142,8 +145,7 @@ function groupMenus(menus: MenuItem[]): MenuSection[] {
     .sort(
       (a, b) =>
         (categoryOrder.get(a) ?? CATEGORY_ORDER.length) -
-          (categoryOrder.get(b) ?? CATEGORY_ORDER.length) ||
-        a.localeCompare(b),
+          (categoryOrder.get(b) ?? CATEGORY_ORDER.length) || a.localeCompare(b),
     )
     .map((category) => ({
       category,

@@ -2,6 +2,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import SideNav from "@/app/SideNav";
 
+const API_BASE_URL = "http://api.example.test";
+
 const navState = vi.hoisted(() => ({
   pathname: "/admin/roles",
 }));
@@ -13,15 +15,17 @@ vi.mock("next/navigation", () => ({
 describe("サイドナビ動的権限メニュー", () => {
   beforeEach(() => {
     navState.pathname = "/admin/roles";
+    process.env.NEXT_PUBLIC_API_URL = API_BASE_URL;
   });
 
   afterEach(() => {
     vi.unstubAllGlobals();
+    delete process.env.NEXT_PUBLIC_API_URL;
   });
 
   it("role_idが無い場合はメニューAPIを呼ばず空表示にする", async () => {
     const fetchMock = vi.fn((input: RequestInfo | URL) => {
-      if (String(input) === "/api/me") {
+      if (String(input) === `${API_BASE_URL}/auth/me`) {
         return jsonResponse({ authenticated: true, user: {} });
       }
       return jsonResponse({ error: "not found" }, 404);
@@ -42,7 +46,7 @@ describe("サイドナビ動的権限メニュー", () => {
       "fetch",
       vi.fn((input: RequestInfo | URL) => {
         const url = String(input);
-        if (url === "/api/me") {
+        if (url === `${API_BASE_URL}/auth/me`) {
           return jsonResponse({
             authenticated: true,
             user: { role_id: "ADMIN" },
