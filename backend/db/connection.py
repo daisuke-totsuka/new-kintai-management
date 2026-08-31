@@ -46,3 +46,6 @@ class DBConnection:
 
     def update(self, table, filters, data):
         return self.driver.update(table, filters, data)
+
+    def delete(self, table, filters):
+        return self.driver.delete(table, filters)

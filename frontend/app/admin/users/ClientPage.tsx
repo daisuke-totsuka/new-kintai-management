@@ -4,8 +4,6 @@ import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
-type RoleCode = "ADMIN" | "ACCOUNTING" | "ADMIN_ACCOUNTING" | "USER";
-
 type UserRow = {
   id: string;
   employeeId: string;
@@ -25,7 +23,7 @@ type UserFormValue = {
   name: string;
   email: string;
   password: string;
-  roleId: RoleCode;
+  roleId: string;
   branchCode: string;
   isActive: boolean;
 };
@@ -35,77 +33,17 @@ type BranchOption = {
   branchName: string;
 };
 
-const ROLE_LABELS: Record<RoleCode, string> = {
-  ADMIN: "管理者",
-  ACCOUNTING: "経理",
-  ADMIN_ACCOUNTING: "管理者兼経理",
-  USER: "一般ユーザ",
+type RoleOption = {
+  roleId: string;
+  roleName: string;
 };
-
-const ROLE_OPTIONS: { value: RoleCode; label: string }[] = [
-  { value: "ADMIN", label: ROLE_LABELS.ADMIN },
-  { value: "ACCOUNTING", label: ROLE_LABELS.ACCOUNTING },
-  { value: "ADMIN_ACCOUNTING", label: ROLE_LABELS.ADMIN_ACCOUNTING },
-  { value: "USER", label: ROLE_LABELS.USER },
-];
-
-const INITIAL_USERS: UserRow[] = [
-  {
-    id: "9000000001",
-    employeeId: "9000000001",
-    name: "Test Admin",
-    email: "test.admin@example.com",
-    roleId: "ADMIN",
-    roleName: ROLE_LABELS.ADMIN,
-    branchCode: "",
-    branchName: "",
-    isActive: true,
-    updatedAt: "2026-06-22",
-  },
-  {
-    id: "9000000002",
-    employeeId: "9000000002",
-    name: "Test Accounting",
-    email: "test.accounting@example.com",
-    roleId: "ACCOUNTING",
-    roleName: ROLE_LABELS.ACCOUNTING,
-    branchCode: "",
-    branchName: "",
-    isActive: true,
-    updatedAt: "2026-06-22",
-  },
-  {
-    id: "9000000003",
-    employeeId: "9000000003",
-    name: "Test Admin Accounting",
-    email: "test.admin.accounting@example.com",
-    roleId: "ADMIN_ACCOUNTING",
-    roleName: ROLE_LABELS.ADMIN_ACCOUNTING,
-    branchCode: "",
-    branchName: "",
-    isActive: true,
-    updatedAt: "2026-06-22",
-  },
-  {
-    id: "9000000004",
-    employeeId: "9000000004",
-    name: "Test User",
-    email: "test.user@example.com",
-    roleId: "USER",
-    roleName: ROLE_LABELS.USER,
-    branchCode: "",
-    branchName: "",
-    isActive: true,
-    updatedAt: "2026-06-22",
-  },
-];
 
 const EMPTY_FORM: UserFormValue = {
   employeeId: "",
   name: "",
   email: "",
   password: "",
-  roleId: "USER",
+  roleId: "",
   branchCode: "",
   isActive: true,
 };
@@ -114,8 +52,9 @@ export default function ClientPage() {
   const router = useRouter();
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
-  const [users, setUsers] = useState<UserRow[]>(INITIAL_USERS);
+  const [users, setUsers] = useState<UserRow[]>([]);
   const [branches, setBranches] = useState<BranchOption[]>([]);
+  const [roles, setRoles] = useState<RoleOption[]>([]);
   const [query, setQuery] = useState("");
   const [showInactive, setShowInactive] = useState(false);
   const [formMode, setFormMode] = useState<"create" | "edit" | null>(null);
@@ -151,6 +90,28 @@ export default function ClientPage() {
         if (body?.users) {
           setUsers(body.users.map(toUserRow));
         }
+      })
+      .catch(() => {
+        setUsers([]);
+      });
+  }, [API_BASE_URL]);
+
+  useEffect(() => {
+    if (!API_BASE_URL) return;
+
+    fetch(`${API_BASE_URL}/roles`, {
+      credentials: "include",
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((body) => {
+        setRoles(
+          (body?.roles ?? [])
+            .map(toRoleOption)
+            .filter((role: RoleOption) => role.roleId),
+        );
+      })
+      .catch(() => {
+        setRoles([]);
       });
   }, [API_BASE_URL]);
 
@@ -169,6 +130,9 @@ export default function ClientPage() {
               .filter((branch: BranchOption) => branch.branchCode),
           );
         }
+      })
+      .catch(() => {
+        setBranches([]);
       });
   }, [API_BASE_URL]);
 
@@ -415,6 +379,7 @@ export default function ClientPage() {
               errors={formErrors}
               saving={saving}
               branches={branches}
+              roles={roles}
               onChange={setFormValue}
               onSubmit={saveUser}
               onCancel={closeForm}
@@ -451,6 +416,7 @@ function UserForm({
   errors,
   saving,
   branches,
+  roles,
   onChange,
   onSubmit,
   onCancel,
@@ -460,6 +426,7 @@ function UserForm({
   errors: Partial<Record<keyof UserFormValue, string>>;
   saving: boolean;
   branches: BranchOption[];
+  roles: RoleOption[];
   onChange: (value: UserFormValue) => void;
   onSubmit: () => void;
   onCancel: () => void;
@@ -471,6 +438,10 @@ function UserForm({
     value.branchCode && !branches.some((branch) => branch.branchCode === value.branchCode)
       ? [{ branchCode: value.branchCode, branchName: "" }, ...branches]
       : branches;
+  const roleOptions =
+    value.roleId && !roles.some((role) => role.roleId === value.roleId)
+      ? [{ roleId: value.roleId, roleName: "" }, ...roles]
+      : roles;
 
   return (
     <div className="help-grid">
@@ -510,16 +481,17 @@ function UserForm({
           />
         </Field>
       )}
-      <Field label="権限">
+      <Field label="権限" error={errors.roleId}>
         <select
           aria-label="権限"
           className="cell-input"
           value={value.roleId}
-          onChange={(event) => setField("roleId", event.target.value as RoleCode)}
+          onChange={(event) => setField("roleId", event.target.value)}
         >
-          {ROLE_OPTIONS.map((role) => (
-            <option key={role.value} value={role.value}>
-              {role.label}
+          <option value="">権限を選択してください</option>
+          {roleOptions.map((role) => (
+            <option key={role.roleId} value={role.roleId}>
+              {roleOptionLabel(role)}
             </option>
           ))}
         </select>
@@ -596,6 +568,9 @@ function validateUser(
   if (mode === "create" && value.password.length < 8) {
     errors.password = "初期パスワードは8文字以上で入力してください";
   }
+  if (!value.roleId.trim()) {
+    errors.roleId = "権限を選択してください";
+  }
 
   const duplicatedEmail = users.some(
     (user) =>
@@ -615,16 +590,14 @@ function toUserPayload(value: UserFormValue) {
     name: value.name.trim(),
     email: value.email.trim(),
     password: value.password,
-    role: value.roleId,
-    role_id: value.roleId,
+    role_id: value.roleId.trim(),
     branch_code: value.branchCode.trim() || null,
-    employment_status: value.isActive ? "active" : "inactive",
     is_active: value.isActive,
   };
 }
 
 function toUserRow(row: Record<string, any>): UserRow {
-  const roleId = normalizeRoleId(firstNonEmpty(row.role_id, row.roleId) ?? firstNonEmpty(row.role));
+  const roleId = normalizeRoleId(firstNonEmpty(row.role_id, row.roleId));
   const roleName = String(row.role_name ?? row.roleName ?? "").trim();
   const employeeId = String(row.employee_id ?? row.employeeId ?? "");
   const branchCode = String(row.branch_code ?? row.branchCode ?? "");
@@ -638,7 +611,7 @@ function toUserRow(row: Record<string, any>): UserRow {
     roleName,
     branchCode,
     branchName: String(row.branch_name ?? row.branchName ?? ""),
-    isActive: Boolean(row.is_active ?? row.isActive ?? row.employment_status !== "inactive"),
+    isActive: Boolean(row.is_active ?? row.isActive ?? true),
     updatedAt: String(row.updated_at ?? row.updatedAt ?? "").slice(0, 10) || "-",
   };
 }
@@ -647,6 +620,13 @@ function toBranchOption(row: Record<string, any>): BranchOption {
   return {
     branchCode: String(row.branch_code ?? row.branchCode ?? ""),
     branchName: String(row.branch_name ?? row.branchName ?? ""),
+  };
+}
+
+function toRoleOption(row: Record<string, any>): RoleOption {
+  return {
+    roleId: String(row.role_id ?? row.roleId ?? ""),
+    roleName: String(row.role_name ?? row.roleName ?? ""),
   };
 }
 
@@ -660,27 +640,17 @@ function firstNonEmpty(...values: unknown[]) {
 }
 
 function normalizeRoleId(value: unknown) {
-  return String(value || "").trim().toUpperCase().replace(/[-\s]/g, "_");
+  return String(value ?? "").trim().toUpperCase().replace(/[-\s]/g, "_");
 }
 
-function normalizeRoleForForm(value: unknown): RoleCode {
-  const role = normalizeRoleId(value);
-  if (role === "ADMIN" || role === "ACCOUNTING" || role === "ADMIN_ACCOUNTING" || role === "USER") {
-    return role;
-  }
-  if (role === "EMPLOYEE" || role === "GENERAL") {
-    return "USER";
-  }
-  if (role === "ADMINACCOUNTING") {
-    return "ADMIN_ACCOUNTING";
-  }
-  return "USER";
+function normalizeRoleForForm(value: unknown) {
+  return normalizeRoleId(value);
 }
 
 function roleLabel(user: Pick<UserRow, "roleId" | "roleName">) {
   if (user.roleName) return user.roleName;
   if (!user.roleId) return "-";
-  return ROLE_LABELS[user.roleId as RoleCode] ?? user.roleId;
+  return user.roleId;
 }
 
 function branchLabel(branchCode: string, branchName: string) {
@@ -690,6 +660,10 @@ function branchLabel(branchCode: string, branchName: string) {
 
 function branchOptionLabel(branch: BranchOption) {
   return branchLabel(branch.branchCode, branch.branchName);
+}
+
+function roleOptionLabel(role: RoleOption) {
+  return role.roleName ? `${role.roleId} ${role.roleName}` : role.roleId;
 }
 
 function nextEmployeeId(users: UserRow[]) {

@@ -1,11 +1,12 @@
 [
   {
-    "testId": "API001",
-    "screenName": "ユーザ登録API",
-    "testName": "test_create_new_user_success",
+    "testId": "USER_API001",
+    "type": "Backend",
+    "screenName": "ユーザ登録",
+    "testName": "ユーザ登録に成功しパスワードハッシュを保存する",
     "nodeid": "backend/tests/test_new_user.py::test_create_new_user_success",
-    "input_employee_id": "0000000002",
-    "input_email": "test.user@example.com",
-    "expected": "201 Createdでユーザ登録に成功し、password_hashにbcryptハッシュが保存される"
+    "input": "employee_id=0000000002, email=test.user@example.com",
+    "expected": "201 Createdでユーザ登録に成功し、password_hashにbcryptハッシュが保存される",
+    "actual": "201 Createdでユーザ登録に成功し、password_hashにbcryptハッシュが保存される"
   }
 ]

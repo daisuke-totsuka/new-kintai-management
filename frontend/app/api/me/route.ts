@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
 
-const DEFAULT_ROLE_CODE = "ADMIN";
-
 export async function GET(req: Request) {
   const cookie = req.headers.get("cookie");
 
@@ -16,7 +14,7 @@ export async function GET(req: Request) {
   const text = await res.text();
 
   try {
-    const body = withRoleFallback(JSON.parse(text));
+    const body = JSON.parse(text);
     return NextResponse.json(body, {
       status: res.status,
       headers: {
@@ -32,38 +30,4 @@ export async function GET(req: Request) {
       },
     });
   }
-}
-
-function withRoleFallback(body: any) {
-  if (!body?.user || typeof body.user !== "object") {
-    return body;
-  }
-
-  const roleId = firstNonEmpty(body.user.role_id, body.user.roleId);
-  const role = firstNonEmpty(body.user.role);
-
-  if (!roleId && role) {
-    body.user.role_id = role;
-  }
-
-  if (!role && roleId) {
-    body.user.role = roleId;
-  }
-
-  if (!roleId && !role) {
-    body.user.role_id = DEFAULT_ROLE_CODE;
-    body.user.role = DEFAULT_ROLE_CODE;
-  }
-
-  return body;
-}
-
-function firstNonEmpty(...values: unknown[]) {
-  for (const value of values) {
-    if (value !== undefined && value !== null && String(value).trim() !== "") {
-      return value;
-    }
-  }
-
-  return undefined;
 }

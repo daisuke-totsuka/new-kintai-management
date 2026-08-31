@@ -43,10 +43,10 @@ def login():
        
        # JWT生成
        token = jwt.encode({
+          "user_id": user.id,
           "email": email,
           "employee_id": user.employee_id,
           "role_id": user.role_id,
-          "role": user.role,
           "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=1)
        }, SECRET_KEY, algorithm="HS256")
 
@@ -56,8 +56,7 @@ def login():
           "user_id": user.id,
           "employee_id": user.employee_id,
           "email": user.email,
-          "role_id": user.role_id,
-          "role": user.role
+          "role_id": user.role_id
        }))
        
        response.set_cookie(

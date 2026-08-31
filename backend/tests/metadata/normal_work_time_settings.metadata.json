@@ -1,0 +1,242 @@
+[
+  {
+    "testId": "NWT_API001",
+    "type": "Backend",
+    "screenName": "通常勤務時間設定",
+    "testName": "通常勤務時間設定を取得できる",
+    "nodeid": "backend/tests/test_attendance.py::test_normal_work_time_is_returned",
+    "input": "GET /api/attendance/normal-work-time",
+    "expected": "通常勤務時間設定をcamelCase DTOで取得できる",
+    "actual": "通常勤務時間設定をcamelCase DTOで取得できる"
+  },
+  {
+    "testId": "NWT_API002",
+    "type": "Backend",
+    "screenName": "通常勤務時間設定",
+    "testName": "通常勤務時間設定が0件の場合に空配列を返却する",
+    "nodeid": "backend/tests/test_attendance.py::test_normal_work_time_zero_settings_are_returned",
+    "input": "設定0件",
+    "expected": "設定0件の場合は空配列を返却する",
+    "actual": "設定0件の場合は空配列を返却する"
+  },
+  {
+    "testId": "NWT_API003",
+    "type": "Backend",
+    "screenName": "通常勤務時間設定",
+    "testName": "複数の通常勤務時間設定を開始日順で返却する",
+    "nodeid": "backend/tests/test_attendance.py::test_normal_work_time_multiple_periods_are_returned_sorted",
+    "input": "複数期間",
+    "expected": "effective_from_day昇順で返却する",
+    "actual": "effective_from_day昇順で返却する"
+  },
+  {
+    "testId": "NWT_API004",
+    "type": "Backend",
+    "screenName": "通常勤務時間設定",
+    "testName": "通常勤務時間設定を新規登録できる",
+    "nodeid": "backend/tests/test_attendance.py::test_normal_work_time_can_be_created",
+    "input": "PUT 新規行",
+    "expected": "idを送らずDB default採番で新規登録し、created_by/updated_byを設定する",
+    "actual": "idを送らずDB default採番で新規登録し、created_by/updated_byを設定する"
+  },
+  {
+    "testId": "NWT_API005",
+    "type": "Backend",
+    "screenName": "通常勤務時間設定",
+    "testName": "通常勤務時間設定を更新できる",
+    "nodeid": "backend/tests/test_attendance.py::test_normal_work_time_can_be_updated",
+    "input": "PUT 既存id",
+    "expected": "既存idを条件に更新し、created_byは変更しない",
+    "actual": "既存idを条件に更新し、created_byは変更しない"
+  },
+  {
+    "testId": "NWT_API006",
+    "type": "Backend",
+    "screenName": "通常勤務時間設定",
+    "testName": "通常勤務時間設定を削除できる",
+    "nodeid": "backend/tests/test_attendance.py::test_normal_work_time_can_be_deleted",
+    "input": "DELETE /api/attendance/normal-work-time/{id}",
+    "expected": "本人の設定を物理削除できる",
+    "actual": "本人の設定を物理削除できる"
+  },
+  {
+    "testId": "NWT_API007",
+    "type": "Backend",
+    "screenName": "通常勤務時間設定",
+    "testName": "通常勤務時間設定で1日から31日までを受理する",
+    "nodeid": "backend/tests/test_attendance.py::test_normal_work_time_accepts_full_month_range",
+    "input": "effectiveFromDay=1, effectiveToDay=31",
+    "expected": "1～31日の境界値を保存できる",
+    "actual": "1～31日の境界値を保存できる"
+  },
+  {
+    "testId": "NWT_API008",
+    "type": "Backend",
+    "screenName": "通常勤務時間設定",
+    "testName": "通常勤務時間設定で開始日0を拒否する",
+    "nodeid": "backend/tests/test_attendance.py::test_normal_work_time_rejects_start_day_zero",
+    "input": "effectiveFromDay=0",
+    "expected": "開始日0は400で拒否する",
+    "actual": "開始日0は400で拒否する"
+  },
+  {
+    "testId": "NWT_API009",
+    "type": "Backend",
+    "screenName": "通常勤務時間設定",
+    "testName": "通常勤務時間設定で終了日32を拒否する",
+    "nodeid": "backend/tests/test_attendance.py::test_normal_work_time_rejects_end_day_thirty_two",
+    "input": "effectiveToDay=32",
+    "expected": "終了日32は400で拒否する",
+    "actual": "終了日32は400で拒否する"
+  },
+  {
+    "testId": "NWT_API010",
+    "type": "Backend",
+    "screenName": "通常勤務時間設定",
+    "testName": "通常勤務時間設定で開始日が終了日より後の場合を拒否する",
+    "nodeid": "backend/tests/test_attendance.py::test_normal_work_time_rejects_start_day_after_end_day",
+    "input": "effectiveFromDay > effectiveToDay",
+    "expected": "開始日が終了日より後の場合は400で拒否する",
+    "actual": "開始日が終了日より後の場合は400で拒否する"
+  },
+  {
+    "testId": "NWT_API011",
+    "type": "Backend",
+    "screenName": "通常勤務時間設定",
+    "testName": "通常勤務時間設定で負数の休憩時間を拒否する",
+    "nodeid": "backend/tests/test_attendance.py::test_normal_work_time_rejects_negative_break_minutes",
+    "input": "breakMinutes=-1",
+    "expected": "負数の休憩時間は400で拒否する",
+    "actual": "負数の休憩時間は400で拒否する"
+  },
+  {
+    "testId": "NWT_API012",
+    "type": "Backend",
+    "screenName": "通常勤務時間設定",
+    "testName": "通常勤務時間設定で不正な時刻形式を拒否する",
+    "nodeid": "backend/tests/test_attendance.py::test_normal_work_time_rejects_invalid_time_format",
+    "input": "startTime=9:00",
+    "expected": "HH:mm形式以外は400で拒否する",
+    "actual": "HH:mm形式以外は400で拒否する"
+  },
+  {
+    "testId": "NWT_API013",
+    "type": "Backend",
+    "screenName": "通常勤務時間設定",
+    "testName": "通常勤務時間設定で終了時刻が開始時刻以前の場合を拒否する",
+    "nodeid": "backend/tests/test_attendance.py::test_normal_work_time_rejects_end_time_not_after_start_time",
+    "input": "startTime=18:00, endTime=09:00",
+    "expected": "通常勤務時間の日跨ぎは許可せず400で拒否する",
+    "actual": "通常勤務時間の日跨ぎは許可せず400で拒否する"
+  },
+  {
+    "testId": "NWT_API014",
+    "type": "Backend",
+    "screenName": "通常勤務時間設定",
+    "testName": "通常勤務時間設定で同一期間重複を拒否する",
+    "nodeid": "backend/tests/test_attendance.py::test_normal_work_time_rejects_same_period_overlap",
+    "input": "既存1～31, 新規1～31",
+    "expected": "同一期間重複は400で拒否する",
+    "actual": "同一期間重複は400で拒否する"
+  },
+  {
+    "testId": "NWT_API015",
+    "type": "Backend",
+    "screenName": "通常勤務時間設定",
+    "testName": "通常勤務時間設定で部分重複を拒否する",
+    "nodeid": "backend/tests/test_attendance.py::test_normal_work_time_rejects_partial_overlap",
+    "input": "既存1～15, 新規10～20",
+    "expected": "部分重複は400で拒否する",
+    "actual": "部分重複は400で拒否する"
+  },
+  {
+    "testId": "NWT_API016",
+    "type": "Backend",
+    "screenName": "通常勤務時間設定",
+    "testName": "通常勤務時間設定で既存期間を内包する期間を拒否する",
+    "nodeid": "backend/tests/test_attendance.py::test_normal_work_time_rejects_containing_period",
+    "input": "既存10～20, 新規1～31",
+    "expected": "既存期間を内包する期間は400で拒否する",
+    "actual": "既存期間を内包する期間は400で拒否する"
+  },
+  {
+    "testId": "NWT_API017",
+    "type": "Backend",
+    "screenName": "通常勤務時間設定",
+    "testName": "通常勤務時間設定で既存期間に内包される期間を拒否する",
+    "nodeid": "backend/tests/test_attendance.py::test_normal_work_time_rejects_contained_period",
+    "input": "既存1～31, 新規10～20",
+    "expected": "既存期間に内包される期間は400で拒否する",
+    "actual": "既存期間に内包される期間は400で拒否する"
+  },
+  {
+    "testId": "NWT_API018",
+    "type": "Backend",
+    "screenName": "通常勤務時間設定",
+    "testName": "通常勤務時間設定で隣接期間を受理する",
+    "nodeid": "backend/tests/test_attendance.py::test_normal_work_time_accepts_adjacent_period",
+    "input": "既存1～15, 新規16～31",
+    "expected": "隣接期間は保存できる",
+    "actual": "隣接期間は保存できる"
+  },
+  {
+    "testId": "NWT_API019",
+    "type": "Backend",
+    "screenName": "通常勤務時間設定",
+    "testName": "通常勤務時間設定で空白期間を受理する",
+    "nodeid": "backend/tests/test_attendance.py::test_normal_work_time_accepts_gap_period",
+    "input": "既存1～15, 新規20～31",
+    "expected": "空白期間を許可して保存できる",
+    "actual": "空白期間を許可して保存できる"
+  },
+  {
+    "testId": "NWT_API020",
+    "type": "Backend",
+    "screenName": "通常勤務時間設定",
+    "testName": "通常勤務時間設定更新で自分自身を重複判定から除外する",
+    "nodeid": "backend/tests/test_attendance.py::test_normal_work_time_update_excludes_itself_from_overlap",
+    "input": "既存id更新",
+    "expected": "更新時は自分自身を重複判定から除外する",
+    "actual": "更新時は自分自身を重複判定から除外する"
+  },
+  {
+    "testId": "NWT_API021",
+    "type": "Backend",
+    "screenName": "通常勤務時間設定",
+    "testName": "通常勤務時間設定で他ユーザ操作を拒否する",
+    "nodeid": "backend/tests/test_attendance.py::test_normal_work_time_rejects_other_user_operation",
+    "input": "他ユーザーuserId",
+    "expected": "認証ユーザー以外の操作を403で拒否する",
+    "actual": "認証ユーザー以外の操作を403で拒否する"
+  },
+  {
+    "testId": "NWT_SVC001",
+    "type": "Backend",
+    "screenName": "通常勤務時間設定",
+    "testName": "提出時に勤怠日に一致する通常勤務時間設定を使用する",
+    "nodeid": "backend/tests/test_attendance.py::test_submit_uses_normal_work_time_matching_attendance_day",
+    "input": "16日に16～31日の設定を適用",
+    "expected": "勤務実績提出判定で対象日に該当する通常勤務時間を使用する",
+    "actual": "勤務実績提出判定で対象日に該当する通常勤務時間を使用する"
+  },
+  {
+    "testId": "NWT_SVC002",
+    "type": "Backend",
+    "screenName": "通常勤務時間設定",
+    "testName": "提出時に該当日の通常勤務時間設定がない場合はエラーを返す",
+    "nodeid": "backend/tests/test_attendance.py::test_submit_errors_when_normal_work_time_is_not_configured_for_day",
+    "input": "19日に20～31日の設定のみ",
+    "expected": "対象日に該当設定がない場合は通常勤務時間未設定エラーを返す",
+    "actual": "対象日に該当設定がない場合は通常勤務時間未設定エラーを返す"
+  },
+  {
+    "testId": "NWT_SVC003",
+    "type": "Backend",
+    "screenName": "通常勤務時間設定",
+    "testName": "提出時に該当する通常勤務時間設定が複数ある場合はエラーを返す",
+    "nodeid": "backend/tests/test_attendance.py::test_submit_errors_when_multiple_normal_work_time_settings_match_day",
+    "input": "10日に複数設定が該当",
+    "expected": "複数設定が該当する場合は業務エラーを返す",
+    "actual": "複数設定が該当する場合は業務エラーを返す"
+  }
+]

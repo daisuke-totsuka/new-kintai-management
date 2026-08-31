@@ -62,13 +62,13 @@ def _client(monkeypatch, db_user=None, token_payload=None):
     return client
 
 
-def test_auth_me_uses_existing_role_when_role_id_is_missing(monkeypatch):
+def test_auth_me_uses_db_role_id(monkeypatch):
     client = _client(
         monkeypatch,
         db_user={
             "email": "testuser@example.com",
             "employee_id": "EMP001",
-            "role": "ADMIN_ACCOUNTING",
+            "role_id": "ADMIN_ACCOUNTING",
         },
     )
 
@@ -79,23 +79,22 @@ def test_auth_me_uses_existing_role_when_role_id_is_missing(monkeypatch):
     assert body == {
         "authenticated": True,
         "user": {
+            "user_id": None,
             "email": "testuser@example.com",
             "employee_id": "EMP001",
             "exp": body["user"]["exp"],
             "role_id": "ADMIN_ACCOUNTING",
-            "role": "ADMIN_ACCOUNTING",
         },
     }
 
 
-def test_auth_me_prefers_role_id_over_role(monkeypatch):
+def test_auth_me_uses_token_role_id_when_db_role_id_is_missing(monkeypatch):
     client = _client(
         monkeypatch,
-        db_user={
+        token_payload={
             "email": "testuser@example.com",
             "employee_id": "EMP001",
             "role_id": "ADMIN",
-            "role": "USER",
         },
     )
 
@@ -104,18 +103,16 @@ def test_auth_me_prefers_role_id_over_role(monkeypatch):
     assert response.status_code == 200
     body = response.get_json()
     assert body["user"]["role_id"] == "ADMIN"
-    assert body["user"]["role"] == "ADMIN"
 
 
-def test_auth_me_defaults_to_admin_when_role_id_and_role_are_missing(monkeypatch):
+def test_auth_me_returns_null_when_role_id_is_missing(monkeypatch):
     client = _client(monkeypatch)
 
     response = client.get("/auth/me")
 
     assert response.status_code == 200
     body = response.get_json()
-    assert body["user"]["role_id"] == "ADMIN"
-    assert body["user"]["role"] == "ADMIN"
+    assert body["user"]["role_id"] is None
 
 
 def test_login_response_includes_role_id(monkeypatch):
@@ -129,7 +126,6 @@ def test_login_response_includes_role_id(monkeypatch):
                 employee_id = "EMP001"
                 email = "testuser@example.com"
                 role_id = "ADMIN_ACCOUNTING"
-                role = "ADMIN_ACCOUNTING"
 
             return User()
 
@@ -153,7 +149,6 @@ def test_login_response_includes_role_id(monkeypatch):
     assert body["email"] == "testuser@example.com"
     assert body["employee_id"] == "EMP001"
     assert body["role_id"] == "ADMIN_ACCOUNTING"
-    assert body["role"] == "ADMIN_ACCOUNTING"
 
 
 @pytest.mark.parametrize(
@@ -179,7 +174,6 @@ def test_login_response_includes_role_id_for_test_roles(monkeypatch, role_id, em
             user.employee_id = "9000000000"
             user.email = login_email
             user.role_id = role_id
-            user.role = role_id
 
             return user
 
@@ -203,4 +197,3 @@ def test_login_response_includes_role_id_for_test_roles(monkeypatch, role_id, em
     assert body["email"] == email
     assert body["employee_id"] == "9000000000"
     assert body["role_id"] == role_id
-    assert body["role"] == role_id

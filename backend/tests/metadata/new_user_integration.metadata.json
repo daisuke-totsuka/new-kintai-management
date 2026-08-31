@@ -1,11 +1,12 @@
 [
   {
-    "testId": "IT001",
-    "screenName": "ユーザ登録API",
-    "testName": "test_create_new_user_integration_success",
+    "testId": "USER_IT001",
+    "type": "Backend",
+    "screenName": "ユーザ登録",
+    "testName": "実DBでユーザ登録に成功し監査列を保存する",
     "nodeid": "backend/tests/test_new_user_integration.py::test_create_new_user_integration_success",
-    "input_employee_id": "",
-    "input_email": "",
-    "expected": "201 Createdでユーザ登録に成功し、usersテーブルにpassword_hash、created_by、updated_byが保存される"
+    "input": "",
+    "expected": "201 Createdでユーザ登録に成功し、usersテーブルにpassword_hash、created_by、updated_byが保存される",
+    "actual": "201 Createdでユーザ登録に成功し、usersテーブルにpassword_hash、created_by、updated_byが保存される"
   }
 ]

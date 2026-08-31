@@ -1,0 +1,236 @@
+[
+  {
+    "testId": "ATT_UI001",
+    "type": "Frontend",
+    "screenName": "勤務実績",
+    "testName": "Backend算出の実働を表示し、入力変更だけではFrontend再計算しない",
+    "input": "始業=10:00",
+    "expected": "Backend算出済みの実働時間を表示し、入力変更だけではFrontend側で再計算しない",
+    "actual": "Backend算出済みの実働時間を表示し、入力変更だけではFrontend側で再計算しない"
+  },
+  {
+    "testId": "ATT_UI002",
+    "type": "Frontend",
+    "screenName": "勤務実績",
+    "testName": "エラーがない場合はエラー表示領域を表示しない",
+    "input": "validationResults=[]",
+    "expected": "エラー表示領域とstatus領域が表示されない",
+    "actual": "エラー表示領域とstatus領域が表示されない"
+  },
+  {
+    "testId": "ATT_UI003",
+    "type": "Frontend",
+    "screenName": "勤務実績",
+    "testName": "保存時はdirtyRowsのみ送信し、保存成功後dirty表示を解除する",
+    "input": "作業内容=変更後作業",
+    "expected": "変更行だけを保存APIへ送信し、保存成功後にdirty表示を解除する",
+    "actual": "変更行だけを保存APIへ送信し、保存成功後にdirty表示を解除する"
+  },
+  {
+    "testId": "ATT_UI004",
+    "type": "Frontend",
+    "screenName": "勤務実績",
+    "testName": "dirty状態の月変更は確認ダイアログを表示し、キャンセルで切替しない",
+    "input": "対象年月=2026-08, dirty=true",
+    "expected": "確認ダイアログを表示し、キャンセル時は対象年月を2026-07のまま維持する",
+    "actual": "確認ダイアログを表示し、キャンセル時は対象年月を2026-07のまま維持する"
+  },
+  {
+    "testId": "ATT_UI005",
+    "type": "Frontend",
+    "screenName": "勤務実績",
+    "testName": "dirty状態の提出は保存成功後に提出APIを呼ぶ",
+    "input": "dirty=true, 提出",
+    "expected": "保存API成功後に提出APIを呼び出す",
+    "actual": "保存API成功後に提出APIを呼び出す"
+  },
+  {
+    "testId": "ATT_UI006",
+    "type": "Frontend",
+    "screenName": "勤務実績",
+    "testName": "排他エラーの差分セルを黄色表示対象にする",
+    "input": "保存API=409 conflictCells",
+    "expected": "差分セルにcell-conflictを付与する",
+    "actual": "差分セルにcell-conflictを付与する"
+  },
+  {
+    "testId": "ATT_UI007",
+    "type": "Frontend",
+    "screenName": "勤務実績",
+    "testName": "保存APIの400はBackend入力チェックエラーを赤色領域に表示する",
+    "input": "保存API=400 validationResults",
+    "expected": "Backend入力チェックエラーを赤色エラー一覧に表示して先頭へスクロールする",
+    "actual": "Backend入力チェックエラーを赤色エラー一覧に表示して先頭へスクロールする"
+  },
+  {
+    "testId": "ATT_UI008",
+    "type": "Frontend",
+    "screenName": "勤務実績",
+    "testName": "保存APIの'ネットワークエラー'は利用者向けメッセージだけを赤色領域に表示する",
+    "input": "保存API=ネットワークエラー",
+    "expected": "技術的な例外内容を隠し、利用者向けメッセージだけを表示する",
+    "actual": "技術的な例外内容を隠し、利用者向けメッセージだけを表示する"
+  },
+  {
+    "testId": "ATT_UI009",
+    "type": "Frontend",
+    "screenName": "勤務実績",
+    "testName": "保存APIの'HTTP 401'は利用者向けメッセージだけを赤色領域に表示する",
+    "input": "保存API=HTTP 401",
+    "expected": "ログイン期限切れの利用者向けメッセージだけを表示する",
+    "actual": "ログイン期限切れの利用者向けメッセージだけを表示する"
+  },
+  {
+    "testId": "ATT_UI010",
+    "type": "Frontend",
+    "screenName": "勤務実績",
+    "testName": "保存APIの'HTTP 403'は利用者向けメッセージだけを赤色領域に表示する",
+    "input": "保存API=HTTP 403",
+    "expected": "権限エラーの利用者向けメッセージだけを表示する",
+    "actual": "権限エラーの利用者向けメッセージだけを表示する"
+  },
+  {
+    "testId": "ATT_UI011",
+    "type": "Frontend",
+    "screenName": "勤務実績",
+    "testName": "保存APIの'HTTP 404'は利用者向けメッセージだけを赤色領域に表示する",
+    "input": "保存API=HTTP 404",
+    "expected": "保存先未検出の利用者向けメッセージだけを表示する",
+    "actual": "保存先未検出の利用者向けメッセージだけを表示する"
+  },
+  {
+    "testId": "ATT_UI012",
+    "type": "Frontend",
+    "screenName": "勤務実績",
+    "testName": "保存APIの'HTTP 500'は利用者向けメッセージだけを赤色領域に表示する",
+    "input": "保存API=HTTP 500",
+    "expected": "サーバーエラーの利用者向けメッセージだけを表示する",
+    "actual": "サーバーエラーの利用者向けメッセージだけを表示する"
+  },
+  {
+    "testId": "ATT_UI013",
+    "type": "Frontend",
+    "screenName": "勤務実績",
+    "testName": "保存APIの'タイムアウト'は利用者向けメッセージだけを赤色領域に表示する",
+    "input": "保存API=タイムアウト",
+    "expected": "技術的なタイムアウト例外を隠し、利用者向けメッセージだけを表示する",
+    "actual": "技術的なタイムアウト例外を隠し、利用者向けメッセージだけを表示する"
+  },
+  {
+    "testId": "ATT_UI014",
+    "type": "Frontend",
+    "screenName": "勤務実績",
+    "testName": "保存APIの'その他例外'は利用者向けメッセージだけを赤色領域に表示する",
+    "input": "保存API=その他例外",
+    "expected": "技術的な例外内容を隠し、保存失敗メッセージだけを表示する",
+    "actual": "技術的な例外内容を隠し、保存失敗メッセージだけを表示する"
+  },
+  {
+    "testId": "ATT_UI015",
+    "type": "Frontend",
+    "screenName": "勤務実績",
+    "testName": "提出エラー時はBackendの検証結果を一覧とセル強調に反映する",
+    "input": "提出API=400 validationResults",
+    "expected": "Backend検証結果をエラー一覧に表示し、対象セルを強調する",
+    "actual": "Backend検証結果をエラー一覧に表示し、対象セルを強調する"
+  },
+  {
+    "testId": "ATT_UI016",
+    "type": "Frontend",
+    "screenName": "勤務実績",
+    "testName": "排他エラー後は最新updatedAtをbaseUpdatedAtにして再保存できる",
+    "input": "1回目保存=409, 2回目保存",
+    "expected": "排他エラー後の再保存で最新updatedAtをbaseUpdatedAtとして送信する",
+    "actual": "排他エラー後の再保存で最新updatedAtをbaseUpdatedAtとして送信する"
+  },
+  {
+    "testId": "ATT_UI017",
+    "type": "Frontend",
+    "screenName": "勤務実績",
+    "testName": "遅刻早退時間が範囲外の場合は保存前にエラーにする",
+    "input": "遅刻早退時間=1000",
+    "expected": "保存APIを呼ばず、保存前入力エラーを赤色一覧に表示する",
+    "actual": "保存APIを呼ばず、保存前入力エラーを赤色一覧に表示する"
+  },
+  {
+    "testId": "ATT_UI018",
+    "type": "Frontend",
+    "screenName": "勤務実績",
+    "testName": "退勤時刻が出勤時刻より前の場合は詳細エラーを表示する",
+    "input": "始業=18:00, 終業=09:00",
+    "expected": "退勤時刻が出勤時刻より前である詳細エラーを表示する",
+    "actual": "退勤時刻が出勤時刻より前である詳細エラーを表示する"
+  },
+  {
+    "testId": "ATT_UI019",
+    "type": "Frontend",
+    "screenName": "勤務実績",
+    "testName": "複数行エラーと同一行複数エラーを全件表示する",
+    "input": "validationResults=3件",
+    "expected": "複数行かつ同一行複数項目のエラーを全件表示する",
+    "actual": "複数行かつ同一行複数項目のエラーを全件表示する"
+  },
+  {
+    "testId": "ATT_UI020",
+    "type": "Frontend",
+    "screenName": "勤務実績",
+    "testName": "20件以上のエラーを赤色一覧内に全件表示する",
+    "input": "validationResults=22件",
+    "expected": "20件以上のエラーを赤色エラー一覧内に全件表示する",
+    "actual": "20件以上のエラーを赤色エラー一覧内に全件表示する"
+  },
+  {
+    "testId": "ATT_UI021",
+    "type": "Frontend",
+    "screenName": "勤務実績",
+    "testName": "重複メッセージは1件にまとめて表示する",
+    "input": "同一validationResults=2件",
+    "expected": "同じ行・項目・メッセージの重複エラーを1件に集約する",
+    "actual": "同じ行・項目・メッセージの重複エラーを1件に集約する"
+  },
+  {
+    "testId": "ATT_UI022",
+    "type": "Frontend",
+    "screenName": "勤務実績",
+    "testName": "画面最下部から保存しても赤色エラー一覧の先頭へスクロールする",
+    "input": "scrollY=99999, 遅刻早退時間=1000",
+    "expected": "画面最下部から保存しても赤色エラー一覧の先頭へスクロールする",
+    "actual": "画面最下部から保存しても赤色エラー一覧の先頭へスクロールする"
+  },
+  {
+    "testId": "ATT_UI023",
+    "type": "Frontend",
+    "screenName": "勤務実績",
+    "testName": "エラー一覧領域だけがスクロールするCSSを持つ",
+    "input": "app/globals.css",
+    "expected": "エラー一覧にmax-height、overflow-y、scroll-margin-topが定義されている",
+    "actual": "エラー一覧にmax-height、overflow-y、scroll-margin-topが定義されている"
+  },
+  {
+    "testId": "ATT_UI024",
+    "type": "Frontend",
+    "screenName": "勤務実績",
+    "testName": "draft以外の状態では入力不可として表示する",
+    "input": "status=submitted",
+    "expected": "draft以外では入力欄をdisabled表示し、保存ボタンを非表示にする",
+    "actual": "draft以外では入力欄をdisabled表示し、保存ボタンを非表示にする"
+  },
+  {
+    "testId": "ATT_UI025",
+    "type": "Frontend",
+    "screenName": "勤務実績",
+    "testName": "保存APIの500 detailは開発環境のみ赤色領域に表示する",
+    "input": "NODE_ENV=development, 保存API=HTTP 500 detail",
+    "expected": "開発環境では保存APIのdetailを赤色エラー一覧に表示する",
+    "actual": "開発環境では保存APIのdetailを赤色エラー一覧に表示する"
+  },
+  {
+    "testId": "ATT_UI026",
+    "type": "Frontend",
+    "screenName": "勤務実績",
+    "testName": "保存APIの500 detailは本番環境では表示しない",
+    "input": "NODE_ENV=production, 保存API=HTTP 500 detail",
+    "expected": "本番環境では保存APIのdetailを赤色エラー一覧に表示しない",
+    "actual": "本番環境では保存APIのdetailを赤色エラー一覧に表示しない"
+  }
+]

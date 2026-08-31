@@ -66,3 +66,14 @@ class SupabaseDriver:
             return result.data[0]
 
         return result.data
+
+    def delete(self, table, filters):
+
+        query = self.client.table(table).delete()
+
+        for key, value in filters.items():
+            query = query.eq(key, value)
+
+        result = query.execute()
+
+        return result.data or []

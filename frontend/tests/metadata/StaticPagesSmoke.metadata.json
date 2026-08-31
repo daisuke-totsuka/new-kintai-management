@@ -1,0 +1,56 @@
+[
+  {
+    "testId": "PAGE_SMOKE001",
+    "type": "Frontend",
+    "screenName": "確定画面",
+    "testName": "確定画面で年度行と状態切替を表示する",
+    "input": "確定画面初期表示",
+    "expected": "12か月分の行が表示され、状態ボタンを切り替えできる。",
+    "actual": "12か月分の行が表示され、状態ボタンを切り替えできる。"
+  },
+  {
+    "testId": "PAGE_SMOKE002",
+    "type": "Frontend",
+    "screenName": "提出状況",
+    "testName": "提出状況で年月選択と部下一覧を表示する",
+    "input": "提出状況初期表示",
+    "expected": "年月選択と部下一覧の行が表示される。",
+    "actual": "年月選択と部下一覧の行が表示される。"
+  },
+  {
+    "testId": "PAGE_SMOKE003",
+    "type": "Frontend",
+    "screenName": "年度設定",
+    "testName": "年度設定で数値入力とカレンダー入力の変更状態を管理する",
+    "input": "ガソリン単価とカレンダー日付変更",
+    "expected": "編集時に保存ボタンが有効化され、保存後に無効化され、カレンダー編集で再度有効化される。",
+    "actual": "編集時に保存ボタンが有効化され、保存後に無効化され、カレンダー編集で再度有効化される。"
+  },
+  {
+    "testId": "PAGE_SMOKE004",
+    "type": "Frontend",
+    "screenName": "経費請求",
+    "testName": "経費請求で最小行数を維持して行追加と削除ができる",
+    "input": "初期行数=5、行追加、行削除",
+    "expected": "最小行数では削除が無効化され、追加で行が増え、削除で行が減る。",
+    "actual": "最小行数では削除が無効化され、追加で行が増え、削除で行が減る。"
+  },
+  {
+    "testId": "PAGE_SMOKE005",
+    "type": "Frontend",
+    "screenName": "業務請求明細",
+    "testName": "業務請求明細で金額合計と行追加削除ができる",
+    "input": "初期行数=5、行追加、行削除、金額=1000/2000",
+    "expected": "最小行数では削除が無効化され、行追加削除が動作し、金額合計が計算される。",
+    "actual": "最小行数では削除が無効化され、行追加削除が動作し、金額合計が計算される。"
+  },
+  {
+    "testId": "PAGE_SMOKE006",
+    "type": "Frontend",
+    "screenName": "ログイン",
+    "testName": "ログインで認証情報を送信し成功時に勤務実績へ遷移する",
+    "input": "email=user@example.com, password=secret",
+    "expected": "ログイン要求を送信し、成功レスポンスで勤務実績へ遷移する。",
+    "actual": "ログイン要求を送信し、成功レスポンスで勤務実績へ遷移する。"
+  }
+]

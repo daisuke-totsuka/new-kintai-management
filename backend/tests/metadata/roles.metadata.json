@@ -1,11 +1,133 @@
 [
   {
-    "testId": "ROLE001",
-    "screenName": "権限管理API",
-    "testName": "test_roles_are_seeded_and_listed",
-    "nodeid": "backend/tests/test_roles.py::test_roles_are_seeded_and_listed",
-    "input_employee_id": "",
-    "input_email": "",
-    "expected": "roles初期データ4件が登録され、一覧取得できる"
+    "testId": "ROLE_API001",
+    "type": "Backend",
+    "screenName": "権限管理",
+    "testName": "権限一覧でDBのメニュー割当を取得する",
+    "nodeid": "backend/tests/test_roles.py::test_roles_are_listed_with_db_menu_maps",
+    "input": "",
+    "expected": "rolesとrole_menu_mapsのDBデータから利用可能メニュー付きの権限一覧を取得できる",
+    "actual": "rolesとrole_menu_mapsのDBデータから利用可能メニュー付きの権限一覧を取得できる"
+  },
+  {
+    "testId": "ROLE_API002",
+    "type": "Backend",
+    "screenName": "権限管理",
+    "testName": "メニューマスタの有効メニューを取得する",
+    "nodeid": "backend/tests/test_roles.py::test_menus_are_listed_from_menu_master",
+    "input": "",
+    "expected": "menu_masterの有効メニューを取得できる",
+    "actual": "menu_masterの有効メニューを取得できる"
+  },
+  {
+    "testId": "ROLE_API006",
+    "type": "Backend",
+    "screenName": "権限管理",
+    "testName": "権限ID別の有効メニューを取得する",
+    "nodeid": "backend/tests/test_roles.py::test_role_menus_are_listed_by_role_id",
+    "input": "role_id=ADMIN",
+    "expected": "role_menu_mapsとmenu_masterからrole_idごとの有効メニューを取得できる",
+    "actual": "role_menu_mapsとmenu_masterからrole_idごとの有効メニューを取得できる"
+  },
+  {
+    "testId": "ROLE_API010",
+    "type": "Backend",
+    "screenName": "権限管理",
+    "testName": "リーダー権限で提出状況メニューを取得する",
+    "nodeid": "backend/tests/test_roles.py::test_leader_role_menus_include_submission_status",
+    "input": "role_id=LEADER",
+    "expected": "LEADERロールでATTENDANCE、WORK_TIME_SETTING、EXPENSE、WORK_BILLING、SUBMISSION_STATUSを取得できる",
+    "actual": "LEADERロールでATTENDANCE、WORK_TIME_SETTING、EXPENSE、WORK_BILLING、SUBMISSION_STATUSを取得できる"
+  },
+  {
+    "testId": "ROLE_API007",
+    "type": "Backend",
+    "screenName": "権限管理",
+    "testName": "無効メニューを権限別メニューから除外する",
+    "nodeid": "backend/tests/test_roles.py::test_role_menus_exclude_inactive_menus",
+    "input": "role_id=ADMIN, menu_id=INACTIVE_MENU",
+    "expected": "is_active=falseのメニューはrole_id別メニュー取得結果から除外される",
+    "actual": "is_active=falseのメニューはrole_id別メニュー取得結果から除外される"
+  },
+  {
+    "testId": "ROLE_API008",
+    "type": "Backend",
+    "screenName": "権限管理",
+    "testName": "未登録権限IDのメニュー取得で404を返す",
+    "nodeid": "backend/tests/test_roles.py::test_unknown_role_menus_returns_404",
+    "input": "role_id=UNKNOWN_ROLE",
+    "expected": "未登録role_idのメニュー取得は404を返す",
+    "actual": "未登録role_idのメニュー取得は404を返す"
+  },
+  {
+    "testId": "ROLE_API003",
+    "type": "Backend",
+    "screenName": "権限登録",
+    "testName": "権限登録でメニュー割当を保存できる",
+    "nodeid": "backend/tests/test_roles.py::test_role_can_be_created_with_menu_maps",
+    "input": "role_id=store-manager, menu_ids=ATTENDANCE,EXPENSE",
+    "expected": "権限登録時にrolesとrole_menu_mapsへ保存できる",
+    "actual": "権限登録時にrolesとrole_menu_mapsへ保存できる"
+  },
+  {
+    "testId": "ROLE_API004",
+    "type": "Backend",
+    "screenName": "権限編集",
+    "testName": "権限編集で権限IDを変更せず更新できる",
+    "nodeid": "backend/tests/test_roles.py::test_role_can_be_updated_without_changing_role_id",
+    "input": "role_id=USER",
+    "expected": "role_idを維持したまま権限名、説明、有効状態、利用可能メニューを更新できる",
+    "actual": "role_idを維持したまま権限名、説明、有効状態、利用可能メニューを更新できる"
+  },
+  {
+    "testId": "ROLE_API009",
+    "type": "Backend",
+    "screenName": "権限編集",
+    "testName": "権限メニュー更新を権限別メニューへ反映する",
+    "nodeid": "backend/tests/test_roles.py::test_role_menu_update_is_reflected_in_role_menus",
+    "input": "role_id=USER, menu_ids=EXPENSE",
+    "expected": "role_menu_maps更新後の結果がrole_id別メニュー取得へ反映される",
+    "actual": "role_menu_maps更新後の結果がrole_id別メニュー取得へ反映される"
+  },
+  {
+    "testId": "ROLE_API005",
+    "type": "Backend",
+    "screenName": "権限編集",
+    "testName": "権限編集で権限ID変更を拒否する",
+    "nodeid": "backend/tests/test_roles.py::test_role_id_cannot_be_changed",
+    "input": "role_id=USER, payload.role_id=ADMIN",
+    "expected": "編集時にrole_idを変更しようとすると400になる",
+    "actual": "編集時にrole_idを変更しようとすると400になる"
+  }
+,
+  {
+    "testId": "ROLE_API011",
+    "type": "Backend",
+    "screenName": "権限DB境界値",
+    "testName": "権限IDと権限名の最大桁数を受理する",
+    "nodeid": "backend/tests/test_roles.py::test_role_create_accepts_role_id_and_name_max_lengths",
+    "input": "role_id=50文字, role_name=100文字",
+    "expected": "DBおよび業務上の最大桁数を受理する。",
+    "actual": "DBおよび業務上の最大桁数を受理する。"
+  },
+  {
+    "testId": "ROLE_API012",
+    "type": "Backend",
+    "screenName": "権限DB境界値",
+    "testName": "権限IDの最大桁数超過を拒否する",
+    "nodeid": "backend/tests/test_roles.py::test_role_create_rejects_role_id_over_max_length",
+    "input": "role_id=51文字",
+    "expected": "最大桁数+1の権限IDをHTTP 400で拒否する。",
+    "actual": "最大桁数+1の権限IDをHTTP 400で拒否する。"
+  },
+  {
+    "testId": "ROLE_API013",
+    "type": "Backend",
+    "screenName": "権限DB境界値",
+    "testName": "権限名の最大桁数超過を拒否する",
+    "nodeid": "backend/tests/test_roles.py::test_role_create_rejects_role_name_over_max_length",
+    "input": "role_name=101文字",
+    "expected": "最大桁数+1の権限名をHTTP 400で拒否する。",
+    "actual": "最大桁数+1の権限名をHTTP 400で拒否する。"
   }
 ]

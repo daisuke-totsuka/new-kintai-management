@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify
 from common.auth import get_current_user
 from repositories.user_repository import UserRepository
-from services.role_service import resolve_role_code
+from services.role_service import resolve_role_id
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -41,22 +41,28 @@ def me():
     except Exception:
         db_user = None
 
-    role_code = resolve_role_code(
+    role_id = resolve_role_id(
         role_id=(
             _first_value(db_user, "role_id", "roleId")
             or _first_value(enriched_user, "role_id", "roleId")
-        ),
-        role=(
-            _first_value(db_user, "role")
-            or _first_value(enriched_user, "role")
-        ),
-        default="ADMIN",
+        )
     )
 
-    enriched_user["role_id"] = role_code
-    enriched_user["role"] = role_code
+    response_user = {
+        "user_id": (
+            _first_value(enriched_user, "user_id", "userId")
+            or _first_value(db_user, "id")
+        ),
+        "email": enriched_user.get("email"),
+        "employee_id": (
+            enriched_user.get("employee_id")
+            or _first_value(db_user, "employee_id", "employeeId")
+        ),
+        "exp": enriched_user.get("exp"),
+        "role_id": role_id,
+    }
 
     return jsonify({
         "authenticated": True,
-        "user": enriched_user
+        "user": response_user
     })

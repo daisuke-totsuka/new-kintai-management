@@ -10,7 +10,7 @@ vi.mock("next/navigation", () => ({
   }),
 }));
 
-describe("UserManagementPage", () => {
+describe("ユーザ管理画面", () => {
   beforeEach(() => {
     pushMock.mockClear();
     process.env.NEXT_PUBLIC_API_URL = "http://api.example.test";
@@ -47,6 +47,9 @@ describe("UserManagementPage", () => {
     expect(within(branchSelect).getByRole("option", { name: "001 東京本社" })).toBeTruthy();
     expect(within(branchSelect).getByRole("option", { name: "002 大阪支店" })).toBeTruthy();
 
+    fireEvent.change(screen.getByRole("combobox", { name: "権限" }), {
+      target: { value: "USER" },
+    });
     fireEvent.change(screen.getByRole("textbox", { name: "社員ID" }), {
       target: { value: "0000000010" },
     });
@@ -97,6 +100,22 @@ function createFetchMock(onCreate?: (payload: Record<string, unknown>) => void) 
                 "東京本社",
               ),
               user("0000000004", "Api User", "user@example.com", "USER", "一般ユーザ", "002", "大阪支店"),
+            ],
+          }),
+      });
+    }
+
+    if (url.includes("/roles")) {
+      return Promise.resolve({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            success: true,
+            roles: [
+              { role_id: "ADMIN", role_name: "管理者" },
+              { role_id: "ACCOUNTING", role_name: "経理" },
+              { role_id: "ADMIN_ACCOUNTING", role_name: "管理者兼経理" },
+              { role_id: "USER", role_name: "一般ユーザ" },
             ],
           }),
       });
@@ -157,7 +176,6 @@ function user(
     employee_id: employeeId,
     name,
     email,
-    role: "USER",
     role_id: roleId,
     role_name: roleName,
     branch_code: branchCode,

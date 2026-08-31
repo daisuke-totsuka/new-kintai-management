@@ -1,82 +1,47 @@
 [
   {
     "testId": "ROLE_UI001",
+    "type": "Frontend",
     "screenName": "権限管理",
-    "testName": "roles初期データ4件を表示できる",
-    "input_name": "",
-    "input_email": "",
-    "expected": "ADMIN、ACCOUNTING、ADMIN_ACCOUNTING、USERが表示される"
+    "testName": "role_menu_mapsのメニューを一覧表示できる",
+    "input": "",
+    "expected": "APIのmenus情報から利用可能メニューを一覧表示する",
+    "actual": "APIのmenus情報から利用可能メニューを一覧表示する"
   },
   {
     "testId": "ROLE_UI002",
+    "type": "Frontend",
     "screenName": "権限管理",
-    "testName": "権限名で検索できる",
-    "input_name": "経理",
-    "input_email": "",
-    "expected": "検索条件に一致する権限のみ表示される"
+    "testName": "権限登録フォームでカテゴリをUSER、ADMIN、LEADER、ACCOUNTINGの順で表示する",
+    "input": "menu_category=USER,ADMIN,LEADER,ACCOUNTING",
+    "expected": "権限登録フォームのカテゴリをUSER、ADMIN、LEADER、ACCOUNTINGの順で表示する",
+    "actual": "権限登録フォームのカテゴリをUSER、ADMIN、LEADER、ACCOUNTINGの順で表示する"
   },
   {
-    "testId": "ROLE_NAV001",
-    "screenName": "権限制御",
-    "testName": "USERには一般メニューのみ表示される",
-    "input_name": "USER",
-    "input_email": "",
-    "expected": "USERへユーザ検索と勤務表設定を公開しない"
+    "testId": "ROLE_UI003",
+    "type": "Frontend",
+    "screenName": "権限管理",
+    "testName": "権限名と説明で検索できる",
+    "input": "一般利用者",
+    "expected": "検索条件に一致する権限のみ表示される",
+    "actual": "検索条件に一致する権限のみ表示される"
   },
   {
-    "testId": "ROLE_NAV002",
-    "screenName": "権限制御",
-    "testName": "ADMINには管理メニューが表示され、経理メニューは表示されない",
-    "input_name": "ADMIN",
-    "input_email": "",
-    "expected": "ADMINへ管理メニューを表示し、勤務表設定を表示しない"
+    "testId": "ROLE_UI004",
+    "type": "Frontend",
+    "screenName": "権限登録",
+    "testName": "権限登録で選択メニューを保存できる",
+    "input": "role_id=report-viewer, menu=経費請求",
+    "expected": "登録APIへ正規化したrole_idと選択menu_idsを送信する",
+    "actual": "登録APIへ正規化したrole_idと選択menu_idsを送信する"
   },
   {
-    "testId": "ROLE_NAV003",
-    "screenName": "権限制御",
-    "testName": "ACCOUNTINGには経理メニューのみ表示される",
-    "input_name": "ACCOUNTING",
-    "input_email": "",
-    "expected": "ACCOUNTINGへ提出状況と勤務表設定のみ表示する"
-  },
-  {
-    "testId": "ROLE_NAV004",
-    "screenName": "権限制御",
-    "testName": "ADMIN_ACCOUNTINGにはADMINとACCOUNTINGの全機能が表示される",
-    "input_name": "ADMIN_ACCOUNTING",
-    "input_email": "",
-    "expected": "ADMIN_ACCOUNTINGへADMINとACCOUNTINGの全機能を表示する"
-  },
-  {
-    "testId": "ROLE_NAV005",
-    "screenName": "権限制御",
-    "testName": "ADMINは管理メニューを表示し経理メニューを表示しない",
-    "input_name": "ADMIN",
-    "input_email": "test.admin@example.com",
-    "expected": "ADMINは一般メニューと管理メニューを表示し、経理メニューを表示しない"
-  },
-  {
-    "testId": "ROLE_NAV006",
-    "screenName": "権限制御",
-    "testName": "ACCOUNTINGは経理メニューのみ表示する",
-    "input_name": "ACCOUNTING",
-    "input_email": "test.accounting@example.com",
-    "expected": "ACCOUNTINGは提出状況と勤務表設定のみ表示する"
-  },
-  {
-    "testId": "ROLE_NAV007",
-    "screenName": "権限制御",
-    "testName": "ADMIN_ACCOUNTINGは管理メニューと経理メニューを表示する",
-    "input_name": "ADMIN_ACCOUNTING",
-    "input_email": "test.admin.accounting@example.com",
-    "expected": "ADMIN_ACCOUNTINGは一般メニュー、管理メニュー、経理メニューを表示する"
-  },
-  {
-    "testId": "ROLE_NAV008",
-    "screenName": "権限制御",
-    "testName": "USERは一般メニューのみ表示する",
-    "input_name": "USER",
-    "input_email": "test.user@example.com",
-    "expected": "USERは一般メニューのみ表示し、管理メニューと経理メニューを表示しない"
+    "testId": "ROLE_UI005",
+    "type": "Frontend",
+    "screenName": "権限編集",
+    "testName": "権限編集ではrole_idを変更不可にしてメニューと有効状態を更新できる",
+    "input": "role_id=ADMIN",
+    "expected": "role_idをdisabled表示し、更新APIへメニューと有効状態を送信する",
+    "actual": "role_idをdisabled表示し、更新APIへメニューと有効状態を送信する"
   }
 ]

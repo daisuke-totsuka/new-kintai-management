@@ -21,36 +21,28 @@ load_dotenv(BACKEND_DIR / ".env")
 
 REQUIRED_ROLES = [
     {
-        "code": "ADMIN",
+        "role_id": "ADMIN",
         "role_name": "Admin",
         "description": "Can use admin and general menus.",
-        "is_system_role": True,
         "is_active": True,
-        "display_order": 10,
     },
     {
-        "code": "ACCOUNTING",
+        "role_id": "ACCOUNTING",
         "role_name": "Accounting",
         "description": "Can use accounting menus.",
-        "is_system_role": True,
         "is_active": True,
-        "display_order": 20,
     },
     {
-        "code": "ADMIN_ACCOUNTING",
+        "role_id": "ADMIN_ACCOUNTING",
         "role_name": "Admin Accounting",
         "description": "Can use admin, accounting, and general menus.",
-        "is_system_role": True,
         "is_active": True,
-        "display_order": 30,
     },
     {
-        "code": "USER",
+        "role_id": "USER",
         "role_name": "User",
         "description": "Can use general menus.",
-        "is_system_role": True,
         "is_active": True,
-        "display_order": 40,
     },
 ]
 
@@ -105,9 +97,8 @@ def main() -> None:
     for role in roles:
         print(
             "  - "
-            f"{role.get('role_id') or role.get('role_code')} "
-            f"{role.get('role_name')} "
-            f"order={role.get('display_order')}"
+            f"{role.get('role_id')} "
+            f"{role.get('role_name')}"
         )
 
     if role_id_status == "missing":
@@ -189,21 +180,20 @@ def users_role_id_sql() -> str:
     return (
         "alter table public.users add column if not exists role_id text;\n"
         "update public.users "
-        "set role_id = coalesce(role_id, upper(role), 'USER') "
+        "set role_id = coalesce(role_id, 'USER') "
         "where role_id is null;"
     )
 
 
 def ensure_roles(client) -> list[dict[str, Any]]:
-    role_key = detect_roles_key(client)
     optional_columns = detect_roles_optional_columns(client)
-    select_columns = [role_key, "role_name", *optional_columns]
+    select_columns = ["role_id", "role_name", *optional_columns]
 
     try:
         existing = (
             client.table("roles")
             .select(",".join(select_columns))
-            .in_(role_key, [role["code"] for role in REQUIRED_ROLES])
+            .in_("role_id", [role["role_id"] for role in REQUIRED_ROLES])
             .execute()
             .data
             or []
@@ -220,57 +210,33 @@ def ensure_roles(client) -> list[dict[str, Any]]:
             )
         existing = []
 
-    existing_codes = {row.get(role_key) for row in existing}
+    existing_role_ids = {row.get("role_id") for row in existing}
     missing = [
-        role_payload(role, role_key, optional_columns)
+        role_payload(role, optional_columns)
         for role in REQUIRED_ROLES
-        if role["code"] not in existing_codes
+        if role["role_id"] not in existing_role_ids
     ]
 
     if missing:
-        client.table("roles").upsert(missing, on_conflict=role_key).execute()
+        client.table("roles").upsert(missing, on_conflict="role_id").execute()
 
     roles = (
         client.table("roles")
         .select(",".join(select_columns))
-        .in_(role_key, [role["code"] for role in REQUIRED_ROLES])
+        .in_("role_id", [role["role_id"] for role in REQUIRED_ROLES])
         .execute()
         .data
         or []
     )
 
-    order_by_code = {
-        role["code"]: index
-        for index, role in enumerate(REQUIRED_ROLES)
-    }
-    return sorted(
-        roles,
-        key=lambda row: int(
-            row.get("display_order")
-            or order_by_code.get(row.get(role_key), 999)
-        ),
-    )
-
-
-def detect_roles_key(client) -> str:
-    for column in ("role_code", "role_id"):
-        try:
-            client.table("roles").select(column).limit(1).execute()
-            return column
-        except Exception as exc:
-            if not is_missing_column_error(exc):
-                raise
-
-    raise RuntimeError("roles table has neither role_code nor role_id.")
+    return sorted(roles, key=lambda row: str(row.get("role_id") or ""))
 
 
 def detect_roles_optional_columns(client) -> list[str]:
     columns = []
     for column in (
         "description",
-        "is_system_role",
         "is_active",
-        "display_order",
         "created_by",
         "updated_by",
     ):
@@ -285,11 +251,10 @@ def detect_roles_optional_columns(client) -> list[str]:
 
 def role_payload(
     role: dict[str, Any],
-    role_key: str,
     optional_columns: list[str],
 ) -> dict[str, Any]:
     payload = {
-        role_key: role["code"],
+        "role_id": role["role_id"],
         "role_name": role["role_name"],
     }
 
@@ -305,13 +270,14 @@ def role_payload(
 def roles_table_sql() -> str:
     return (
         "create table if not exists public.roles ("
-        "role_code text primary key, "
+        "role_id text primary key, "
         "role_name text not null, "
         "description text not null default '', "
-        "is_system_role boolean not null default true, "
-        "display_order integer not null default 0, "
+        "is_active boolean not null default true, "
         "created_at timestamptz not null default now(), "
-        "updated_at timestamptz not null default now()"
+        "created_by text not null default 'SYSTEM', "
+        "updated_at timestamptz not null default now(), "
+        "updated_by text not null default 'SYSTEM'"
         ");"
     )
 
@@ -397,9 +363,7 @@ def can_save_system_audit_value(client, user_rows: list[dict[str, Any]]) -> bool
         "name": "Audit Probe",
         "email": PROBE_EMAIL,
         "password_hash": hash_password("AuditProbe123!"),
-        "role": "USER",
         "role_id": "USER",
-        "employment_status": "active",
         "created_by": SYSTEM_AUDIT_VALUE,
         "created_at": now,
         "updated_by": SYSTEM_AUDIT_VALUE,
@@ -432,9 +396,9 @@ def cleanup_probe(client) -> None:
 
 def find_existing_admin_employee_id(rows: list[dict[str, Any]]) -> str | None:
     for row in rows:
-        role = row.get("role_id") or row.get("role")
+        role_id = row.get("role_id")
         employee_id = row.get("employee_id")
-        if role == "ADMIN" and employee_id:
+        if role_id == "ADMIN" and employee_id:
             return str(employee_id)
     return None
 
@@ -483,9 +447,7 @@ def upsert_test_users(client, audit_value: str) -> list[dict[str, Any]]:
             "name": spec["name"],
             "email": spec["email"],
             "password_hash": hash_password(spec["password"]),
-            "role": spec["role_id"],
             "role_id": spec["role_id"],
-            "employment_status": "active",
             "created_by": audit_value,
             "updated_by": audit_value,
             "updated_at": now,
@@ -616,7 +578,7 @@ def verify_logins(users: list[dict[str, Any]]) -> list[dict[str, Any]]:
 def fetch_user_by_email(client, email: str) -> dict[str, Any] | None:
     rows = (
         client.table("users")
-        .select("id,employee_id,name,email,role,role_id,created_by,updated_by")
+        .select("id,employee_id,name,email,role_id,created_by,updated_by")
         .eq("email", email)
         .execute()
         .data
@@ -628,7 +590,7 @@ def fetch_user_by_email(client, email: str) -> dict[str, Any] | None:
 def fetch_users(client) -> list[dict[str, Any]]:
     return (
         client.table("users")
-        .select("id,employee_id,email,role,role_id,created_by,updated_by")
+        .select("id,employee_id,email,role_id,created_by,updated_by")
         .execute()
         .data
         or []

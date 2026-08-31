@@ -11,9 +11,7 @@ class FakeDB:
                     "name": "Admin User",
                     "email": "admin@example.com",
                     "role_id": "ADMIN",
-                    "role": "USER",
                     "branch_code": "001",
-                    "employment_status": "active",
                     "is_active": True,
                     "updated_at": "2026-06-23T00:00:00+00:00",
                 },
@@ -22,9 +20,8 @@ class FakeDB:
                     "employee_id": "0000000002",
                     "name": "Accounting User",
                     "email": "accounting@example.com",
-                    "role": "ACCOUNTING",
+                    "role_id": "ACCOUNTING",
                     "branch_code": "002",
-                    "employment_status": "active",
                     "is_active": True,
                     "updated_at": "2026-06-23T00:00:00+00:00",
                 },
@@ -32,8 +29,8 @@ class FakeDB:
 
         if table == "roles":
             return [
-                {"role_code": "ADMIN", "role_name": "管理者"},
-                {"role_code": "ACCOUNTING", "role_name": "経理"},
+                {"role_id": "ADMIN", "role_name": "管理者"},
+                {"role_id": "ACCOUNTING", "role_name": "経理"},
             ]
 
         if table == "branches":
@@ -52,7 +49,6 @@ def test_search_users_returns_role_and_branch_fields(monkeypatch):
     users = repo.search_users()
 
     assert users[0]["role_id"] == "ADMIN"
-    assert users[0]["role"] == "ADMIN"
     assert users[0]["role_name"] == "管理者"
     assert users[0]["branch_code"] == "001"
     assert users[0]["branch_name"] == "東京本社"

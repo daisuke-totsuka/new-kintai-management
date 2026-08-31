@@ -5,7 +5,7 @@ import bcrypt
 
 from common.auth import get_current_user
 from repositories.user_repository import UserRepository
-from services.role_service import normalize_role_code
+from services.role_service import normalize_role_id
 
 
 new_user_bp = Blueprint("new_user", __name__)
@@ -35,12 +35,36 @@ def _normalize_optional_text(value):
     return text or None
 
 
-def _role_value(data):
+def _sanitize_user_response(user):
+    allowed_keys = (
+        "id",
+        "employee_id",
+        "email",
+        "name",
+        "role_id",
+        "branch_code",
+        "is_active",
+        "is_admin",
+        "is_accounting",
+        "kana_name",
+        "created_at",
+        "created_by",
+        "updated_at",
+        "updated_by",
+    )
+    return {
+        key: user[key]
+        for key in allowed_keys
+        if key in user
+    }
+
+
+def _role_value(data, default=None):
     return _first_non_blank(
         data,
         "role_id",
         "roleId",
-        default=_first_value(data, "role", default="USER"),
+        default=default,
     )
 
 
@@ -112,29 +136,26 @@ def update_user(employee_id):
         return jsonify({"error": "Email already exists"}), 409
 
     try:
-        role_code = normalize_role_code(_role_value(data))
+        role_id = normalize_role_id(
+            _role_value(data, default=current.get("role_id"))
+        )
     except ValueError as error:
         return jsonify({"error": str(error)}), 400
 
-    employment_status = _first_value(
-        data,
-        "employment_status",
-        "employmentStatus",
-        default=current.get("employment_status", "active"),
-    )
+    if not role_id:
+        return jsonify({"error": "Role is required"}), 400
+
     is_active = _first_value(
         data,
         "is_active",
         "isActive",
-        default=employment_status != "inactive",
+        default=current.get("is_active", True),
     )
 
     user = {
         "name": name,
         "email": email,
-        "role": role_code,
-        "role_id": role_code,
-        "employment_status": employment_status,
+        "role_id": role_id,
         "is_active": is_active,
         "branch_code": _normalize_optional_text(
             _first_value(
@@ -159,7 +180,7 @@ def update_user(employee_id):
     updated_user = repo.update_by_employee_id(employee_id, user)
     response_user = dict(current)
     response_user.update(updated_user or user)
-    response_user.pop("password_hash", None)
+    response_user = _sanitize_user_response(response_user)
 
     return jsonify({
         "success": True,
@@ -179,7 +200,6 @@ def disable_user(employee_id):
         return jsonify({"error": "User not found"}), 404
 
     user = {
-        "employment_status": "inactive",
         "is_active": False,
         "updated_by": operator_employee_id,
         "updated_at": datetime.now(timezone.utc).isoformat(),
@@ -187,7 +207,7 @@ def disable_user(employee_id):
     updated_user = repo.update_by_employee_id(employee_id, user)
     response_user = dict(current)
     response_user.update(updated_user or user)
-    response_user.pop("password_hash", None)
+    response_user = _sanitize_user_response(response_user)
 
     return jsonify({
         "success": True,
@@ -229,16 +249,18 @@ def create_new_user():
         return jsonify({"error": "Email already exists"}), 409
 
     try:
-        role_code = normalize_role_code(_role_value(data))
+        role_id = normalize_role_id(_role_value(data))
     except ValueError as error:
         return jsonify({"error": str(error)}), 400
+
+    if not role_id:
+        return jsonify({"error": "Role is required"}), 400
 
     password_hash = bcrypt.hashpw(
         password.encode("utf-8"),
         bcrypt.gensalt()
     ).decode("utf-8")
     now = datetime.now(timezone.utc).isoformat()
-    employment_status = _first_value(data, "employment_status", "employmentStatus", default="active")
 
     user = {
         "id": repo.get_next_user_id(),
@@ -246,14 +268,12 @@ def create_new_user():
         "name": name,
         "email": email,
         "password_hash": password_hash,
-        "role": role_code,
-        "role_id": role_code,
-        "employment_status": employment_status,
+        "role_id": role_id,
         "is_active": _first_value(
             data,
             "is_active",
             "isActive",
-            default=employment_status != "inactive",
+            default=True,
         ),
         "branch_code": _normalize_optional_text(
             _first_value(data, "branch_code", "branchCode", "branchId")
@@ -266,8 +286,7 @@ def create_new_user():
 
     created_user = repo.create(user)
 
-    response_user = dict(created_user or user)
-    response_user.pop("password_hash", None)
+    response_user = _sanitize_user_response(created_user or user)
 
     return jsonify({
         "success": True,

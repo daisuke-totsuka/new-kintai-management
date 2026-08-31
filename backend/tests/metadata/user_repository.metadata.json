@@ -1,0 +1,12 @@
+[
+  {
+    "testId": "USER_REPO001",
+    "type": "Backend",
+    "screenName": "ユーザ管理",
+    "testName": "ユーザ検索で権限と支店項目を返却する",
+    "nodeid": "backend/tests/test_user_repository.py::test_search_users_returns_role_and_branch_fields",
+    "input": "employee_id=0000000001",
+    "expected": "ユーザ検索でrole_id、role_name、branch_code、branch_nameを返却する",
+    "actual": "ユーザ検索でrole_id、role_name、branch_code、branch_nameを返却する"
+  }
+]

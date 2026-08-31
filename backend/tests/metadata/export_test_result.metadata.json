@@ -1,0 +1,62 @@
+[
+  {
+    "testId": "REPORT_BE001",
+    "type": "Backend",
+    "screenName": "Excelレポート",
+    "testName": "正式画面名のメタデータを許可する",
+    "nodeid": "backend/tests/test_export_test_result.py::test_validate_metadata_accepts_japanese_screen_name",
+    "input": "画面名=Excelレポート",
+    "expected": "正式名称として許可される。",
+    "actual": "正式名称として許可される。"
+  },
+  {
+    "testId": "REPORT_BE002",
+    "type": "Backend",
+    "screenName": "Excelレポート",
+    "testName": "英語画面名のメタデータを拒否する",
+    "nodeid": "backend/tests/test_export_test_result.py::test_validate_metadata_rejects_english_screen_name",
+    "input": "画面名=Dashboard",
+    "expected": "正式日本語名称ではないため拒否される。",
+    "actual": "正式日本語名称ではないため拒否される。"
+  },
+  {
+    "testId": "REPORT_BE003",
+    "type": "Backend",
+    "screenName": "Excelレポート",
+    "testName": "画面名未設定のメタデータを拒否する",
+    "nodeid": "backend/tests/test_export_test_result.py::test_validate_metadata_rejects_missing_screen_name",
+    "input": "画面名未設定",
+    "expected": "画面名未設定として拒否される。",
+    "actual": "画面名未設定として拒否される。"
+  },
+  {
+    "testId": "REPORT_BE004",
+    "type": "Backend",
+    "screenName": "Excelレポート",
+    "testName": "テストID重複のメタデータを拒否する",
+    "nodeid": "backend/tests/test_export_test_result.py::test_validate_metadata_rejects_duplicate_test_id",
+    "input": "同一テストIDを2件指定",
+    "expected": "テストID重複として拒否される。",
+    "actual": "テストID重複として拒否される。"
+  },
+  {
+    "testId": "REPORT_BE005",
+    "type": "Backend",
+    "screenName": "Excelレポート",
+    "testName": "画面名とテスト名重複のメタデータを拒否する",
+    "nodeid": "backend/tests/test_export_test_result.py::test_validate_metadata_rejects_duplicate_screen_name_and_test_name",
+    "input": "同一画面名と同一テスト名を2件指定",
+    "expected": "画面名とテスト名の組み合わせ重複として拒否される。",
+    "actual": "画面名とテスト名の組み合わせ重複として拒否される。"
+  },
+  {
+    "testId": "REPORT_BE006",
+    "type": "Backend",
+    "screenName": "Excelレポート",
+    "testName": "メタデータ不足のテスト結果を拒否する",
+    "nodeid": "backend/tests/test_export_test_result.py::test_build_rows_by_screen_rejects_missing_metadata",
+    "input": "実行結果に一致するmetadataなし",
+    "expected": "metadata不足として拒否される。",
+    "actual": "metadata不足として拒否される。"
+  }
+]
